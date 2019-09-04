@@ -178,18 +178,22 @@ class getTags():
         self._baseRequest    = _getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode
     
-    def tags(self,params = { 'category_id': '125', 'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },verbose=False):
+    def tags(self,
+        api = 'tags',
+        payload = {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },verbose=False):
         """
         ** describe API here **  
         Sample run -
           {callMethod}()
         
         Args:
+            api  (str): choose between "tags", "related_tags", or "tags/series"
             verbose (bool): returns data in a pandas dataframe format or all available information (default) or all data if True.
         Returns:
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
         query = deepcopy(self._baseRequest)
+        query['url'] = query['url']+api
         #update basequery with passed data, eg:
         #query['params'].update({'method':'GETDATASETLIST'})  #update with some further base request code.
         #query['params'].update({'TABLENAME': tableName})
@@ -229,3 +233,5 @@ class getTags():
 
 if __name__ == '__main__':
     print(_getBaseRequest())
+    d = getTags()
+    d.tags()

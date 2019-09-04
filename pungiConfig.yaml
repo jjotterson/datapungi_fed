@@ -18,8 +18,7 @@ drivers:
     #  three cases: tags, related_tags, tags/series
     callMethod: tags
     displayName: tags
-    params: "{ 'category_id': '125', 
-               'file_type': 'json',
+    params: "{ 'file_type': 'json',
                'realtime_start': '',
                'realtime_end':   '',
                'tag_names' : '',
