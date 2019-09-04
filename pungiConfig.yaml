@@ -1,0 +1,35 @@
+author: James Otterson
+email: jjotterson@gmail.com
+projectName: datapungi-fed
+importAs: dpf
+shortDescription: 'Access data from the Federal Reserve (FED)'
+url: https://github.com/jjotterson/datapungi-fed
+sourceName : Federal Reserve
+sourceNameShort: FED
+sorceUrl : https://api.stlouisfed.org/
+drivers:
+  - driverName: getCategories  
+    callMethod: categories
+    displayName: categories
+    params: "{}"
+
+  - driverName: getTags 
+    #FRED tags are attributes assigned to series.
+    #  three cases: tags, related_tags, tags/series
+    callMethod: tags
+    displayName: tags
+    params: "{ 'category_id': '125', 
+               'file_type': 'json',
+               'realtime_start': '',
+               'realtime_end':   '',
+               'tag_names' : '',
+               'exclude_tag_names':'',
+               'tag_group_id': '',
+               'search_text': '',
+               'limit':'',
+               'offset':'',
+               'order_by':'',
+               'sort_order':'' }"
+baseRequest:  #see mainSubGeneral's base request fun 
+  howToCallKey: userID    #information for base request
+  example: a text maybe
