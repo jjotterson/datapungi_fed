@@ -12,7 +12,7 @@ drivers:
     callMethod: categories
     displayName: categories
     params: "{}"
-
+  
   - driverName: getTags 
     #FRED tags are attributes assigned to series.
     #  three cases: tags, related_tags, tags/series
@@ -29,6 +29,11 @@ drivers:
                'offset':'',
                'order_by':'',
                'sort_order':'' }"
+  - driverName: getParamaters
+    callMethod: parameters
+    displayName: parameters
+    params: "{'databaseName':'','parameterName':''}"
+    
 baseRequest:  #see mainSubGeneral's base request fun 
   howToCallKey: userID    #information for base request
   example: a text maybe

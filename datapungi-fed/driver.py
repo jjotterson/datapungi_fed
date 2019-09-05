@@ -9,6 +9,7 @@ from copy import deepcopy
 import pyperclip
 import math
 import re
+import inspect
 from datetime import datetime
 #from datapungi-fed import generalSettings        #NOTE: projectName 
 import generalSettings        #NOTE: projectName 
@@ -180,7 +181,20 @@ class getTags():
     
     def tags(self,
         api = 'tags',
-        payload = {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },verbose=False):
+        tag_names = '',
+        tag_group_id = '',
+        exclude_tag_names = '',
+        realtime_start = '',
+        realtime_end = '',
+        search_text = '',
+        limit='',
+        offset='', 
+        order_by='', 
+        sort_order='',
+        file_type = 'json',
+        params = {},
+        verbose=False
+    ):
         """
         ** describe API here **  
         Sample run -
@@ -193,13 +207,17 @@ class getTags():
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
         query = deepcopy(self._baseRequest)
+        
+        #update query url
         query['url'] = query['url']+api
-        #update basequery with passed data, eg:
-        #query['params'].update({'method':'GETDATASETLIST'})  #update with some further base request code.
-        #query['params'].update({'TABLENAME': tableName})
-        #query['params'].update({'FREQUENCY':frequency})
-        #query['params'].update({'YEAR':year})
-        #query['params'].update(payload)
+          
+        #update basequery with passed parameters (ones not empty or 'api', 'params' or 'verbose')
+        allArgs = inspect.getfullargspec(self.tags).args
+        inputParams = { key:locals()[key] for key in allArgs if key not in ['self','api','params','verbose'] }
+        for key,entry in inputParams.items():
+            query['params'].update({key:entry})
+        
+        query['params'].update(params)
         
         retrivedData = requests.get(**query)
         
@@ -216,9 +234,8 @@ class getTags():
     
     def _cleanOutput(self,query,retrivedData):
             df_output = pd.DataFrame()
-            #sample cleaning code:
-            #self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['BEAAPI']['Results']['Dataset'] )"
-            #df_output =  pd.DataFrame( retrivedData.json()['BEAAPI']['Results']['Dataset'] )
+            self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['tags'] )"
+            df_output =  pd.DataFrame( retrivedData.json()['tags'] )
             return(df_output)
         
     def clipcode(self):
@@ -234,4 +251,4 @@ class getTags():
 if __name__ == '__main__':
     print(_getBaseRequest())
     d = getTags()
-    d.tags()
+    print(d.tags())
