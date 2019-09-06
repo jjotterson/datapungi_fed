@@ -117,17 +117,15 @@ def _clipcode(self):
         print("Loaded session does not have a code entry.  Re-run with verbose option set to True. eg: v.drivername(...,verbose=True)")
 
 # (2) Drivers ###################################################################
-class getCategories():
+class getSources():
     def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
         self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
         self._baseRequest    = _getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode
     
-    def categories(self,
-        api = 'tags',
-        tag_names = '',
-        tag_group_id = '',
-        exclude_tag_names = '',
+    def sources(self,
+        api = 'sources',
+        source_id = '',
         realtime_start = '',
         realtime_end = '',
         search_text = '',
@@ -146,10 +144,11 @@ class getCategories():
           {callMethod}()
         
         Args:
-            api  (str): choose between "tags", "related_tags", or "tags/series"
-            tag_names (str):  default to '' need to pass if api is not "tags" eg: monetary+aggregates;weekly   
-            tag_group_id (str): default to ''
-            exclude_tag_names (str): default to ''
+            api  (str): choose between "fred/sources" (default), "fred/source", or "fred/source/release"
+                - sources - Get all sources of economic data.
+                - source - Get a source of economic data.
+                - source/releases - Get the releases for a source.
+            source_id (str): default to ''
             realtime_start (str):  default to '' - which leads to current date
             realtime_end (str):  default to '' - which leads to current date
             search_text (str): default to ''
@@ -170,7 +169,7 @@ class getCategories():
         query['url'] = query['url']+api
           
         #update basequery with passed parameters 
-        allArgs = inspect.getfullargspec(self.tags).args
+        allArgs = inspect.getfullargspec(self.sources).args
         localVars = locals()
         inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','countExceedsLimit'] } #args that are query params
         inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
@@ -186,9 +185,11 @@ class getCategories():
         df_output = self._cleanOutput(api,query,retrivedData)
         
         #print warning if there is more data the limit to download
-        if retrivedData.json()['count'] > retrivedData.json()['limit'] and countExceedsLimit:
+        _count = retrivedData.json().get('count',1)
+        _limit = retrivedData.json().get('limit',1000)
+        if _count > _limit and countExceedsLimit:
             print('NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(
-                retrivedData.json()['count'],retrivedData.json()['limit']))
+                _count,_limit))
         if verbose == False:
             self._lastLoad = df_output
             return(df_output)
@@ -199,10 +200,10 @@ class getCategories():
             return(output)  
     
     def _cleanOutput(self,api,query,retrivedData):
-        if api == "tags/series":
-            dataKey = 'seriess'
+        if api == "source/releases":  
+            dataKey = 'releases'
         else:
-            dataKey = 'tags'
+            dataKey = 'sources'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
         df_output =  pd.DataFrame( retrivedData.json()[dataKey] ) #TODO: deal with xml
         setattr(df_output,'meta', dict(filter( lambda entry: entry[0] != dataKey, retrivedData.json().items() ))) #TODO: silence warning
@@ -249,6 +250,9 @@ class getTags():
         
         Args:
             api  (str): choose between "tags", "related_tags", or "tags/series"
+                - fred/tags - Get all tags, search for tags, or get tags by name.
+                - fred/related_tags - Get the related tags for one or more tags.
+                - fred/tags/series - Get the series matching tags.
             tag_names (str):  default to '' need to pass if api is not "tags" eg: monetary+aggregates;weekly   
             tag_group_id (str): default to ''
             exclude_tag_names (str): default to ''
@@ -322,8 +326,17 @@ class getTags():
 
 if __name__ == '__main__':
     #print(_getBaseRequest())
-    d = getTags()
+    
+    #tags
+    #d = getTags()
     #v = d.tags('related_tags',tag_names='monetary+aggregates;weekly')
-    v = d.tags()
+    #v = d.tags()
     #v = d.tags(api='tags/series',tag_names='slovenia;food;oecd')
+    
+    #sources
+    d = getSources()
+    #v = d.sources()
+    #v = d.sources('source','1')
+    v = d.sources('source/releases','1')
+
     print(v,v.meta)

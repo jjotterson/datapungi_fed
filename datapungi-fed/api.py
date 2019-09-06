@@ -49,8 +49,11 @@ class data(delegator):
        :param userSettings: settings saved in the packge pointing to a yaml/json or env containing the connection parameters 
     '''
     DELEGATED_METHODS = {
-                'getCategories'    :  ['categories'],
-                'getTags'    :  ['tags'],
+                #'getCategories' :  ['categories'],
+                #'getReleases'   :  ['releases'],
+                #'getSeries'     :  ['series'],
+                'getSources'    :  ['sources'],
+                'getTags'       :  ['tags'],
             }
     def __init__(self,connectionParameters = {}, userSettings = {}):
         self.__connectInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings ) 
@@ -58,8 +61,11 @@ class data(delegator):
         self._help     = self.__connectInfo.datasourceOverview
         #load drivers:
         loadInfo = {'baseRequest' : self.__connectInfo.baseRequest, 'connectionParameters' : self.__connectInfo.connectionParameters}
-        self.getCategories         = drivers.getCategories(**loadInfo)
-        self.getTags         = drivers.getTags(**loadInfo)
+        #self.getCategories = drivers.getCategories(**loadInfo)
+        #self.getReleases   = drivers.getReleases(**loadInfo)
+        #self.getSeries     = drivers.getSeries(**loadInfo)
+        self.getSources    = drivers.getSources(**loadInfo)
+        self.getTags       = drivers.getTags(**loadInfo)
         #self.getGetParameterList           = drivers.getGetParameterList(**loadInfo)
         #TODO: improve loading the drivers 
     
