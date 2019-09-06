@@ -1,0 +1,26 @@
+api                    =  'series',             
+series_id              =  '',  
+realtime_start         =  '',     
+realtime_end           =  '',
+file_type              =  'json',   
+limit                  =  '', 
+offset                 =  '',       
+sort_order             =  '',
+observation_start      =  '',            
+observation_end        =  '',
+units                  =  '',     
+frequency              =  '',         
+aggregation_method     =  '',   
+output_type            =  '',          
+vintage_dates          =  '',         
+search_text            =  '',                
+search_type            =  '',          
+order_by               =  '',          
+filter_variable        =  '',             
+filter_value           =  '',            
+tag_names              =  '',           
+exclude_tag_names      =  '',           
+series_search_text     =  '',    #(fred/series/search/tags or related_tags args)
+tag_group_id           =  '',    #(fred/series/search/tags or related_tags args)  
+tag_search_text        =  '',    #(fred/series/search/tags or related_tags args)   
+
