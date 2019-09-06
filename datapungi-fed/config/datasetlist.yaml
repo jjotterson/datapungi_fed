@@ -1,0 +1,46 @@
+- api: FRED
+  group: Categories
+  datasets:
+     - {database: category, description: Get a category.}
+     - {database: categor/children, description: Get the child categories for a specified parent category.}
+     - {database: category/related, description: Get the related categories for a category.}
+     - {database: category/series, description: Get the series in a category.}
+     - {database: category/tags, description: Get the tags for a category.}
+     - {database: category/related_tags, description: Get the related tags for a category.}
+- api: FRED
+  group: Releases
+  datasets:   
+      - { database: releases, description: Get all releases of economic data.}
+      - { database: releases/dates, description: Get release dates for all releases of economic data.}
+      - { database: release, description: Get a release of economic data.}
+      - { database: release/dates, description: Get release dates for a release of economic data.}
+      - { database: release/series, description: Get the series on a release of economic data.}
+      - { database: release/sources, description: Get the sources for a release of economic data.}
+      - { database: release/tags, description: Get the tags for a release.}
+      - { database: release/related_tags, description: Get the related tags for a release.}
+      - { database: release/tables, description: Get the release tables for a given release.}
+- api: FRED
+  group: Series
+  datasets:
+    - { database: series, description: Get an economic data series.}
+    - { database: series/categories, description: Get the categories for an economic data series.}
+    - { database: series/observations, description: Get the observations or data values for an economic data series.}
+    - { database: series/release, description: Get the release for an economic data series.}
+    - { database: series/search, description: Get economic data series that match keywords.}
+    - { database: series/search/tags, description: Get the tags for a series search.}
+    - { database: series/search/related_tags, description: Get the related tags for a series search.}
+    - { database: series/tags, description: Get the tags for an economic data series.}
+    - { database: series/updates, description: Get economic data series sorted by when observations were updated on the FRED® server.}
+    - { database: series/vintagedates, description: Get the dates in history when a series' data values were revised or new data values were released.}
+- api: FRED
+  group: Sources
+  datasets:
+    - { database: sources, description: Get all sources of economic data.}
+    - { database: source, description: Get a source of economic data.}
+    - { database: source/releases, description: Get the releases for a source.}
+- api: FRED
+  group: Tags
+  datasets:
+    - { database: tags, description: "Get all tags, search for tags, or get tags by name."}
+    - { database: related_tags, description: "Get the related tags for one or more tags."}
+    - { database: tags/series, description: Get the series matching tags.}

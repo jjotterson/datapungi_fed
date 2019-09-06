@@ -10,6 +10,8 @@ import pyperclip
 import math
 import re
 import inspect
+import yaml
+import itertools
 from datetime import datetime
 #from datapungi-fed import generalSettings        #NOTE: projectName 
 import generalSettings        #NOTE: projectName 
@@ -117,6 +119,21 @@ def _clipcode(self):
         print("Loaded session does not have a code entry.  Re-run with verbose option set to True. eg: v.drivername(...,verbose=True)")
 
 # (2) Drivers ###################################################################
+class getDatasetlist():
+    def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
+        self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
+        self._baseRequest    = _getBaseRequest(baseRequest,connectionParameters,userSettings)  
+        self._lastLoad       = {}  #data stored here to assist functions such as clipcode
+
+    def datasetlist(self):
+        dataPath = utils.getResourcePath('/config/datasetlist.yaml')
+        with open(dataPath,'r') as yf:
+            datasetlist = yaml.safe_load(yf)
+        datasetlistExp  = [[ {**entry, **dataset} for dataset in entry.pop('datasets')] for entry in datasetlist]
+        datasetlistFlat = list(itertools.chain.from_iterable(datasetlistExp))
+        df_output = pd.DataFrame(datasetlistFlat)
+        return(df_output)    
+
 class getSeries():
     def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
         self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
@@ -459,7 +476,11 @@ if __name__ == '__main__':
     #v = d.sources('source/releases','1')
     
     #series
-    d = getSeries()
-    v = d.series('GDP')
-    print(v,v.meta)
+    #d = getSeries()
+    #v = d.series('GDP')
     #print(v,v.meta)
+    #print(v,v.meta)
+
+    #dataselist
+    d = getDatasetlist()
+    print(d.datasetlist())
