@@ -1,7 +1,9 @@
 import pandas as pd
 import requests
-from datapungi-fed import generalSettings 
-from datapungi-fed import drivers
+#from datapungi-fed import generalSettings 
+import generalSettings 
+#from datapungi-fed import drivers
+import drivers
 
 #TODO: improve delegation (want name of methods - getDatasetlis - to be _get... or be all in a loadedDrivers class etc.  These shouldn't be 
 #      easy for user access)
@@ -56,9 +58,9 @@ class data(delegator):
         self._help     = self.__connectInfo.datasourceOverview
         #load drivers:
         loadInfo = {'baseRequest' : self.__connectInfo.baseRequest, 'connectionParameters' : self.__connectInfo.connectionParameters}
-                self.getCategories         = drivers.getCategories(**loadInfo)
-                self.getTags         = drivers.getTags(**loadInfo)
-                #self.getGetParameterList           = drivers.getGetParameterList(**loadInfo)
+        self.getCategories         = drivers.getCategories(**loadInfo)
+        self.getTags         = drivers.getTags(**loadInfo)
+        #self.getGetParameterList           = drivers.getGetParameterList(**loadInfo)
         #TODO: improve loading the drivers 
     
     def __str__(self):
@@ -90,3 +92,4 @@ class data(delegator):
 if __name__ == '__main__':
     d = data()
     print(d)
+    print(d.tags())   

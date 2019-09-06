@@ -123,29 +123,72 @@ class getCategories():
         self._baseRequest    = _getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode
     
-    def categories(self,params = {},verbose=False):
+    def categories(self,
+        api = 'tags',
+        tag_names = '',
+        tag_group_id = '',
+        exclude_tag_names = '',
+        realtime_start = '',
+        realtime_end = '',
+        search_text = '',
+        limit='',
+        offset='', 
+        order_by='', 
+        sort_order='',
+        file_type = 'json',
+        params = {},
+        verbose=False,
+        countExceedsLimit = True
+    ):
         """
-        ** describe API here **  
+        ** tags extracts  **  
         Sample run -
           {callMethod}()
         
         Args:
-            verbose (bool): returns data in a pandas dataframe format or all available information (default) or all data if True.
+            api  (str): choose between "tags", "related_tags", or "tags/series"
+            tag_names (str):  default to '' need to pass if api is not "tags" eg: monetary+aggregates;weekly   
+            tag_group_id (str): default to ''
+            exclude_tag_names (str): default to ''
+            realtime_start (str):  default to '' - which leads to current date
+            realtime_end (str):  default to '' - which leads to current date
+            search_text (str): default to ''
+            limit (str): default to '' - which leads to a limit of 1000 - the max 
+            offset (str): default to ''
+            order_by (str):   default to ''
+            sort_order (str): default to ''
+            file_type (str):  choose between 'json' (default) or 'xml'
+            params (dict):  override all other options with the entries of this dictionary.  (default {})
+            verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
+            countExceedsLimit (bool): print warning if dataset size is larger than the download limit
         Returns:
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
         query = deepcopy(self._baseRequest)
-        #update basequery with passed data, eg:
-        #query['params'].update({'method':'GETDATASETLIST'})  #update with some further base request code.
-        #query['params'].update({'TABLENAME': tableName})
-        #query['params'].update({'FREQUENCY':frequency})
-        #query['params'].update({'YEAR':year})
-        #query['params'].update(payload)
         
+        #update query url
+        query['url'] = query['url']+api
+          
+        #update basequery with passed parameters 
+        allArgs = inspect.getfullargspec(self.tags).args
+        localVars = locals()
+        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','countExceedsLimit'] } #args that are query params
+        inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
+        
+        #override if passing arg "params" is non-empty:
+        # - ensure symbols such as + and ; don't get sent to url symbols FED won't read
+        query['params'].update(inputParams)       
+        query['params'].update(params)
+        query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
+        
+        #get data and clean it
         retrivedData = requests.get(**query)
+        df_output = self._cleanOutput(api,query,retrivedData)
         
-        df_output = self._cleanOutput(query,retrivedData)
-        
+        #print warning if there is more data the limit to download
+        if retrivedData.json()['count'] > retrivedData.json()['limit'] and countExceedsLimit:
+            print('NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(
+                retrivedData.json()['count'],retrivedData.json()['limit']))
         if verbose == False:
             self._lastLoad = df_output
             return(df_output)
@@ -155,21 +198,24 @@ class getCategories():
             self._lastLoad = output
             return(output)  
     
-    def _cleanOutput(self,query,retrivedData):
-            df_output = pd.DataFrame()
-            #sample cleaning code:
-            #self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['BEAAPI']['Results']['Dataset'] )"
-            #df_output =  pd.DataFrame( retrivedData.json()['BEAAPI']['Results']['Dataset'] )
-            return(df_output)
+    def _cleanOutput(self,api,query,retrivedData):
+        if api == "tags/series":
+            dataKey = 'seriess'
+        else:
+            dataKey = 'tags'
+        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
+        df_output =  pd.DataFrame( retrivedData.json()[dataKey] ) #TODO: deal with xml
+        setattr(df_output,'meta', dict(filter( lambda entry: entry[0] != dataKey, retrivedData.json().items() ))) #TODO: silence warning
+        return(df_output)
         
     def clipcode(self):
         _clipcode(self)
     
     def _driverMetadata(self):
         self.metadata =     [{
-            "displayName":"categories",
-            "method"     :"categories",   #Name of driver main function - run with getattr(data,'datasetlist')()
-            "params"     :{},
+            "displayName":"tags",
+            "method"     :"tags",   #Name of driver main function - run with getattr(data,'datasetlist')()
+            "params"     :{ 'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },
         }]
 
 
@@ -193,16 +239,30 @@ class getTags():
         sort_order='',
         file_type = 'json',
         params = {},
-        verbose=False
+        verbose=False,
+        countExceedsLimit = True
     ):
         """
-        ** describe API here **  
+        ** tags extracts  **  
         Sample run -
           {callMethod}()
         
         Args:
             api  (str): choose between "tags", "related_tags", or "tags/series"
-            verbose (bool): returns data in a pandas dataframe format or all available information (default) or all data if True.
+            tag_names (str):  default to '' need to pass if api is not "tags" eg: monetary+aggregates;weekly   
+            tag_group_id (str): default to ''
+            exclude_tag_names (str): default to ''
+            realtime_start (str):  default to '' - which leads to current date
+            realtime_end (str):  default to '' - which leads to current date
+            search_text (str): default to ''
+            limit (str): default to '' - which leads to a limit of 1000 - the max 
+            offset (str): default to ''
+            order_by (str):   default to ''
+            sort_order (str): default to ''
+            file_type (str):  choose between 'json' (default) or 'xml'
+            params (dict):  override all other options with the entries of this dictionary.  (default {})
+            verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
+            countExceedsLimit (bool): print warning if dataset size is larger than the download limit
         Returns:
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
@@ -211,18 +271,26 @@ class getTags():
         #update query url
         query['url'] = query['url']+api
           
-        #update basequery with passed parameters (ones not empty or 'api', 'params' or 'verbose')
+        #update basequery with passed parameters 
         allArgs = inspect.getfullargspec(self.tags).args
-        inputParams = { key:locals()[key] for key in allArgs if key not in ['self','api','params','verbose'] }
-        for key,entry in inputParams.items():
-            query['params'].update({key:entry})
+        localVars = locals()
+        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','countExceedsLimit'] } #args that are query params
+        inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
         
+        #override if passing arg "params" is non-empty:
+        # - ensure symbols such as + and ; don't get sent to url symbols FED won't read
+        query['params'].update(inputParams)       
         query['params'].update(params)
+        query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
         
+        #get data and clean it
         retrivedData = requests.get(**query)
+        df_output = self._cleanOutput(api,query,retrivedData)
         
-        df_output = self._cleanOutput(query,retrivedData)
-        
+        #print warning if there is more data the limit to download
+        if retrivedData.json()['count'] > retrivedData.json()['limit'] and countExceedsLimit:
+            print('NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(
+                retrivedData.json()['count'],retrivedData.json()['limit']))
         if verbose == False:
             self._lastLoad = df_output
             return(df_output)
@@ -232,11 +300,15 @@ class getTags():
             self._lastLoad = output
             return(output)  
     
-    def _cleanOutput(self,query,retrivedData):
-            df_output = pd.DataFrame()
-            self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['tags'] )"
-            df_output =  pd.DataFrame( retrivedData.json()['tags'] )
-            return(df_output)
+    def _cleanOutput(self,api,query,retrivedData):
+        if api == "tags/series":
+            dataKey = 'seriess'
+        else:
+            dataKey = 'tags'
+        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
+        df_output =  pd.DataFrame( retrivedData.json()[dataKey] ) #TODO: deal with xml
+        setattr(df_output,'meta', dict(filter( lambda entry: entry[0] != dataKey, retrivedData.json().items() ))) #TODO: silence warning
+        return(df_output)
         
     def clipcode(self):
         _clipcode(self)
@@ -245,10 +317,13 @@ class getTags():
         self.metadata =     [{
             "displayName":"tags",
             "method"     :"tags",   #Name of driver main function - run with getattr(data,'datasetlist')()
-            "params"     :{ 'category_id': '125', 'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },
+            "params"     :{ 'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },
         }]
 
 if __name__ == '__main__':
-    print(_getBaseRequest())
+    #print(_getBaseRequest())
     d = getTags()
-    print(d.tags())
+    #v = d.tags('related_tags',tag_names='monetary+aggregates;weekly')
+    v = d.tags()
+    #v = d.tags(api='tags/series',tag_names='slovenia;food;oecd')
+    print(v,v.meta)

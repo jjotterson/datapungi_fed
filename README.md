@@ -43,11 +43,12 @@ data = dpf.data() #or data = dpf.data("API Key"), see setting up section
 #Basic package description
 print(data._help)                 #overall info and basic example
 print(data)                       #the list of available databases
-print(data._docDriver('NIPA'))    #documentation of a specific databases
+print(data._docDriver('tags'))    #documentation of a specific databases
 
 #Query a database, return only pandas table:
-data.NIPA('T10101')                         #default freq = Q, year = All
-data.NIPA('T10101').meta                    #meta lists units, rev date, etc
+data.tags()                                  
+data.tags().meta                            #eg, query date, count of entries and its load limit (1000 max)
+data.tags('related_tags',tag_names='monetary+aggregates;weekly')                                 #eg, query date, count of entries and its load limit (1000 max)
 data.NIPA('T10101',frequency='A',year='X')  
 data.NIPA('T71800',frequency='A')           #if a query does not work, try other frequencies
 
@@ -84,11 +85,12 @@ import datapungi-fed as dpf
 #start the drivers:
 data = dpf.data()
 
-#METADATA drivers                         # Use these to get: 
-data.datasetlist()                        # (1) the list of BEA datasets with APIs
-data.getParameterList('FixedAssets')      # (2) the parameters of a specific BEA API 
-data.getParameterValues('NIPA','Year')    # (3) the options of a parameter of a BEA API 
+#FRED tags dataset:
+data.tags()                                  
+data.tags(api='related_tags',tag_names='monetary+aggregates;weekly') 
+data.tags('tag/series','slovenia;food;oecd') 
     
+
 #specific driver queries:
 data.NIPA('T10101')
 data.fixedAssets('FAAt101','X')
