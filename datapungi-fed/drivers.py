@@ -130,7 +130,7 @@ class getDatasetlist():
         with open(dataPath,'r') as yf:
             datasetlist = yaml.safe_load(yf)
         datasetlistExp  = [[ {**entry, **dataset} for dataset in entry.pop('datasets')] for entry in datasetlist]
-        datasetlistFlat = list(itertools.chain.from_iterable(datasetlistExp))
+        datasetlistFlat = list(itertools.chain.from_iterable(datasetlistExp)) #flatten the array of array
         df_output = pd.DataFrame(datasetlistFlat)
         return(df_output)    
 

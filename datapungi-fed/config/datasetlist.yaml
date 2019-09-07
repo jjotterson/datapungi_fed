@@ -4,7 +4,7 @@
      - {database: category, description: Get a category., parameters: [api_key,file_type,category_id] }
      - {database: categor/children, description: Get the child categories for a specified parent category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end]}
      - {database: category/related, description: Get the related categories for a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end]}
-     - {database: category/series, description: Get the series in a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end,limit,offset,order_by,sort_order,filter_variable,filter_value,tag_names,exclude_tag_nam}
+     - {database: category/series, description: Get the series in a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end,limit,offset,order_by,sort_order,filter_variable,filter_value,tag_names,exclude_tag_names]}
      - {database: category/tags, description: Get the tags for a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end,tag_names,tag_group_id,search_text,limit,offset,order_by,sort_order]}
      - {database: category/related_tags, description: Get the related tags for a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end,tag_names,exclude_tag_names,tag_group_id,search_text,limit,offset,order_by]}
 - api: FRED
