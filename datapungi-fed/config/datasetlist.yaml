@@ -1,46 +1,46 @@
 - api: FRED
   group: Categories
   datasets:
-     - {database: category, description: Get a category.}
-     - {database: categor/children, description: Get the child categories for a specified parent category.}
-     - {database: category/related, description: Get the related categories for a category.}
-     - {database: category/series, description: Get the series in a category.}
-     - {database: category/tags, description: Get the tags for a category.}
-     - {database: category/related_tags, description: Get the related tags for a category.}
+     - {database: category, description: Get a category., parameters: [api_key,file_type,category_id] }
+     - {database: categor/children, description: Get the child categories for a specified parent category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end]}
+     - {database: category/related, description: Get the related categories for a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end]}
+     - {database: category/series, description: Get the series in a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end,limit,offset,order_by,sort_order,filter_variable,filter_value,tag_names,exclude_tag_nam}
+     - {database: category/tags, description: Get the tags for a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end,tag_names,tag_group_id,search_text,limit,offset,order_by,sort_order]}
+     - {database: category/related_tags, description: Get the related tags for a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end,tag_names,exclude_tag_names,tag_group_id,search_text,limit,offset,order_by]}
 - api: FRED
   group: Releases
   datasets:   
-      - { database: releases, description: Get all releases of economic data.}
-      - { database: releases/dates, description: Get release dates for all releases of economic data.}
-      - { database: release, description: Get a release of economic data.}
-      - { database: release/dates, description: Get release dates for a release of economic data.}
-      - { database: release/series, description: Get the series on a release of economic data.}
-      - { database: release/sources, description: Get the sources for a release of economic data.}
-      - { database: release/tags, description: Get the tags for a release.}
-      - { database: release/related_tags, description: Get the related tags for a release.}
-      - { database: release/tables, description: Get the release tables for a given release.}
+      - { database: releases, description: Get all releases of economic data., parameters: [api_key,file_type,realtime_start,realtime_end,limit,offset,order_by,sort_order]}
+      - { database: releases/dates, description: Get release dates for all releases of economic data., parameters: [api_key,file_type,realtime_start,realtime_end,limit,offset,order_by,sort_order,include_release_dates_with_no_data]}
+      - { database: release, description: Get a release of economic data., parameters: [api_key,file_type,release_id,realtime_start,realtime_end]}
+      - { database: release/dates, description: Get release dates for a release of economic data., parameters: [api_key,file_type,release_id,realtime_start,realtime_end,limit,offset,sort_order,include_release_dates_with_no_data]}
+      - { database: release/series, description: Get the series on a release of economic data., parameters: [api_key,file_type,release_id,realtime_start,realtime_end,limit,offset,order_by,sort_order,filter_variable,filter_value,tag_names,exclude_tag_names]}
+      - { database: release/sources, description: Get the sources for a release of economic data., parameters: [api_key,file_type,release_id,realtime_start,realtime_end]}
+      - { database: release/tags, description: Get the tags for a release., parameters: [api_key,file_type,release_id,realtime_start,realtime_end,tag_names,tag_group_id,search_text,limit,offset,order_by,sort_order]}
+      - { database: release/related_tags, description: Get the related tags for a release., parameters: [api_key,file_type,release_id,realtime_start,realtime_end,tag_names,exclude_tag_names,tag_group_id,search_text,limit,offset,order_by,sort_order]}
+      - { database: release/tables, description: Get the release tables for a given release., parameters: [api_key,file_type,release_id,element_id,include_observation_values,observation_date]}
 - api: FRED
   group: Series
   datasets:
-    - { database: series, description: Get an economic data series.}
-    - { database: series/categories, description: Get the categories for an economic data series.}
-    - { database: series/observations, description: Get the observations or data values for an economic data series.}
-    - { database: series/release, description: Get the release for an economic data series.}
-    - { database: series/search, description: Get economic data series that match keywords.}
-    - { database: series/search/tags, description: Get the tags for a series search.}
-    - { database: series/search/related_tags, description: Get the related tags for a series search.}
-    - { database: series/tags, description: Get the tags for an economic data series.}
-    - { database: series/updates, description: Get economic data series sorted by when observations were updated on the FRED® server.}
-    - { database: series/vintagedates, description: Get the dates in history when a series' data values were revised or new data values were released.}
+    - { database: series, description: Get an economic data series., parameters: [api_key,file_type,series_id,realtime_start,realtime_end]}
+    - { database: series/categories, description: Get the categories for an economic data series., parameters: [api_key,file_type,series_id,realtime_start,realtime_end]}
+    - { database: series/observations, description: Get the observations or data values for an economic data series., parameters: [api_key,file_type,series_id,realtime_start,realtime_end,limit,offset,sort_order,observation_start,observation_end,units,frequency,aggregation_method,output_type,vintage_dates]}
+    - { database: series/release, description: Get the release for an economic data series., parameters: [api_key,file_type,series_id,realtime_start,realtime_end]}
+    - { database: series/search, description: Get economic data series that match keywords., parameters: [api_key,file_type,series_id,realtime_start,realtime_end]}
+    - { database: series/search/tags, description: Get the tags for a series search., parameters: [api_key,file_type,series_search_text,realtime_start,realtime_end,tag_names,tag_group_id,tag_search_text,limit,offset,order_by,sort_order]}
+    - { database: series/search/related_tags, description: Get the related tags for a series search., parameters: [api_key,file_type,series_search_text,realtime_start,realtime_end,tag_names,exclude_tag_names,tag_group_id,tag_search_text,limit,offset,order_by,sort_order]}
+    - { database: series/tags, description: Get the tags for an economic data series., parameters: [api_key,file_type,series_id,realtime_start,realtime_end,order_by,sort_order]}
+    - { database: series/updates, description: Get economic data series sorted by when observations were updated on the FRED® server., parameters: [api_key,file_type,realtime_start,realtime_end,limit,offset,filter_value,start_time,end_time]}
+    - { database: series/vintagedates, description: Get the dates in history when a series' data values were revised or new data values were released., parameters: [api_key,file_type,series_id,realtime_start,realtime_end,limit,offset,sort_order]}
 - api: FRED
   group: Sources
   datasets:
-    - { database: sources, description: Get all sources of economic data.}
-    - { database: source, description: Get a source of economic data.}
-    - { database: source/releases, description: Get the releases for a source.}
+    - { database: sources, description: Get all sources of economic data., parameters: [api_key,file_type,realtime_start,realtime_end,limit,offset,order_by,sort_order]}
+    - { database: source, description: Get a source of economic data., parameters: [api_key,file_type,source_id,realtime_start,realtime_end]}
+    - { database: source/releases, description: Get the releases for a source., parameters: [api_key,file_type,source_id,realtime_start,realtime_end,limit,offset,order_by,sort_order]}
 - api: FRED
   group: Tags
   datasets:
-    - { database: tags, description: "Get all tags, search for tags, or get tags by name."}
-    - { database: related_tags, description: "Get the related tags for one or more tags."}
-    - { database: tags/series, description: Get the series matching tags.}
+    - { database: tags, description: "Get all tags, search for tags, or get tags by name.", parameters: [api_key,file_type,realtime_start,realtime_end,tag_names,tag_group_id,search_text,limit,offset,order_by,sort_order]}
+    - { database: related_tags, description: "Get the related tags for one or more tags.", parameters: [api_key,file_type,realtime_start,realtime_end,tag_names,exclude_tag_names,tag_group_id,search_text,limit,offset,order_by,sort_order]}
+    - { database: tags/series, description: Get the series matching tags., parameters: [api_key,file_type,tag_names,exclude_tag_names,realtime_start,realtime_end,limit,offset,order_by,sort_order]}
