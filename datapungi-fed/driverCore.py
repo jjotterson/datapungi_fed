@@ -13,6 +13,7 @@ import inspect
 import yaml
 import itertools
 from datetime import datetime
+import warnings
 #from datapungi-fed import generalSettings        #NOTE: projectName 
 import generalSettings        #NOTE: projectName 
 #from datapungi-fed import utils                  #NOTE: projectName  
@@ -24,6 +25,58 @@ class driverCore():
         self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode        
     
+    def _queryApiCleanOutput(self,urlPrefix,api,localVars,method,params,nonQueryArgs,warningsList):
+        query = self._getBaseQuery('series/',api,localVars,self.series,params,nonQueryArgs)
+        
+        #get data and clean it
+        retrivedData = requests.get(**query)
+        df_output = self._cleanOutput(api,query,retrivedData)
+        
+        #print warning if there is more data the limit to download
+        for entry in warningsList:
+            self._warnings(entry,retrivedData,warningsOn) 
+        
+        #short or detailed output, update _lastLoad attribute:
+        output = self._formatOutputupdateLoadedAttrib(query,df_output,retrivedData,verbose)
+    
+    def _cleanOutput(self,api,query,retrivedData):
+        '''
+         This is a placeholder - specific implementations should have their own cleaning method
+        '''
+        return(retrivedData)
+    
+    def _getBaseQuery(self,urlPrefix,api,localVars,method,params,removeMethodArgs):
+        '''
+          Return a dictionary of request arguments.
+
+          Args:
+              urlPrefix (str) - string appended to the end of the core url (eg, series -> http:...\series? )
+              api (str) - (Specific to datapungi_fed) the name of the database (eg, categories)
+              locals    - local data of othe method - to get the passed method arguments
+              method (func) - the actual method being called (not just a name, will use this to gets its arguments. eg, driver's main method)
+              params (dict) - a dictionary with request paramters used to override all other given parameters 
+              removeMethodArgs (list) - the arguments of the method that are not request parameters (eg, self, params, verbose)
+          Returns:
+              query (dict) - a dictionary with 'url' and 'params' (a string) to be passed to a request
+        '''
+        query = deepcopy(self._baseRequest)
+        
+        #update query url
+        query['url'] = query['url']+urlPrefix+api
+          
+        #update basequery with passed parameters 
+        allArgs = inspect.getfullargspec(method).args
+        inputParams = { key:localVars[key] for key in allArgs if key not in removeMethodArgs } #args that are query params
+        inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
+        
+        #override if passing arg "params" is non-empty:
+        # - ensure symbols such as + and ; don't get sent to url symbols FED won't read
+        query['params'].update(inputParams)       
+        query['params'].update(params)
+        query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
+
+        return(query)
+    
     def _getBaseRequest(self,baseRequest={},connectionParameters={},userSettings={}):
         '''
           Write a base request.  This is the information that gets used in most requests such as getting the userKey
@@ -33,7 +86,31 @@ class driverCore():
            return(connectInfo.baseRequest)
         else:
            return(baseRequest)
-
+    def _formatOutputupdateLoadedAttrib(self,query,df_output,retrivedData,verbose):
+        if verbose == False:
+            self._lastLoad = df_output
+            return(df_output)
+        else:
+            code = _getCode(query,self._connectionInfo.userSettings,self._cleanCode)
+            output = dict(dataFrame = df_output, request = retrivedData, code = code)  
+            self._lastLoad = output
+            return(output)
+    
+    def _warnings(self,warningName,inputs,warningsOn = True):
+        if not warningsOn:
+            return
+        
+        if warningName == 'countPassLimit':
+            '''
+              warns if number of lines in database exceeds the number that can be downloaded.
+              inputs = a request result of a FED API 
+            '''
+            _count = inputs.json().get('count',1)
+            _limit = inputs.json().get('limit',1000)
+            if _count > _limit:
+              warningText = 'NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(_count,_limit)
+              warnings.warn(warningText) 
+        
     def _getBaseCode(self,codeEntries): 
         '''
           The base format of a code that can be used to replicate a driver using Requests directly.

@@ -39,7 +39,7 @@ class getDatasetlist(driverCore):
         return(df_output)    
 
 
-class getCategories():
+class getCategories(driverCore):
     def categories(
         api = '',
         offset = '',
@@ -59,13 +59,12 @@ class getCategories():
         search_text = '',
         params                 = {},
         verbose                = False,
-        countExceedsLimit      = True
+        warningsOn      = True
     ):
         pass
 
 
-class getReleases():
-
+class getReleases(driverCore):
     def releases(
         api = '',
         include_observation_values = '',
@@ -88,7 +87,7 @@ class getReleases():
         filter_variable = '',
         params                 = {},
         verbose                = False,
-        countExceedsLimit      = True
+        warningsOn      = True
     ):
         pass 
 
@@ -122,7 +121,7 @@ class getSeries(driverCore):
         tag_search_text        =  '',    #(fred/series/search/tags or related_tags args) 
         params                 = {},
         verbose                = False,
-        countExceedsLimit      = True
+        warningsOn             = True
     ):
         """
         ** tags extracts  **  
@@ -145,46 +144,28 @@ class getSeries(driverCore):
             file_type (str):  choose between 'json' (default) or 'xml'
             params (dict):  override all other options with the entries of this dictionary.  (default {})
             verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
-            countExceedsLimit (bool): print warning if dataset size is larger than the download limit
+            warningsOn (bool): print warning if dataset size is larger than the download limit
         Returns:
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
-        query = deepcopy(self._baseRequest)
-        
-        #update query url
-        query['url'] = query['url']+'series/'+api
-          
-        #update basequery with passed parameters 
-        allArgs = inspect.getfullargspec(self.series).args
-        localVars = locals()
-        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','countExceedsLimit'] } #args that are query params
-        inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
-        
-        #override if passing arg "params" is non-empty:
-        # - ensure symbols such as + and ; don't get sent to url symbols FED won't read
-        query['params'].update(inputParams)       
-        query['params'].update(params)
-        query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
+        #get requests' query inputs
+        localVars = locals() #to get the entries passed in method - the query params
+        nonQueryArgs = ['self','api','params','verbose','warningsOn'] #variables that aren't query params.
+        warningsList = ['countPassLimit'] #warn on this events.
+        query = self._getBaseQuery('series/',api,localVars,self.series,params,nonQueryArgs)
         
         #get data and clean it
         retrivedData = requests.get(**query)
         df_output = self._cleanOutput(api,query,retrivedData)
         
         #print warning if there is more data the limit to download
-        _count = retrivedData.json().get('count',1)
-        _limit = retrivedData.json().get('limit',1000)
-        if _count > _limit and countExceedsLimit:
-            print('NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(
-                _count,_limit))
-        if verbose == False:
-            self._lastLoad = df_output
-            return(df_output)
-        else:
-            code = _getCode(query,self._connectionInfo.userSettings,self._cleanCode)
-            output = dict(dataFrame = df_output, request = retrivedData, code = code)  
-            self._lastLoad = output
-            return(output)  
-    
+        for entry in warningsList:
+            self._warnings(entry,retrivedData,warningsOn) 
+        
+        #short or detailed output, update _lastLoad attribute:
+        output = self._formatOutputupdateLoadedAttrib(query,df_output,retrivedData,verbose)
+        return(output)
+
     def _cleanOutput(self,api,query,retrivedData):
         if   api == "observations":  
             dataKey = 'observations'
@@ -218,7 +199,7 @@ class getSources(driverCore):
         file_type = 'json',
         params = {},
         verbose=False,
-        countExceedsLimit = True
+        warningsOn = True
     ):
         """
         ** tags extracts  **  
@@ -241,7 +222,7 @@ class getSources(driverCore):
             file_type (str):  choose between 'json' (default) or 'xml'
             params (dict):  override all other options with the entries of this dictionary.  (default {})
             verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
-            countExceedsLimit (bool): print warning if dataset size is larger than the download limit
+            warningsOn (bool): print warning if dataset size is larger than the download limit
         Returns:
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
@@ -253,7 +234,7 @@ class getSources(driverCore):
         #update basequery with passed parameters 
         allArgs = inspect.getfullargspec(self.sources).args
         localVars = locals()
-        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','countExceedsLimit'] } #args that are query params
+        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','warningsOn'] } #args that are query params
         inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
         
         #override if passing arg "params" is non-empty:
@@ -269,7 +250,7 @@ class getSources(driverCore):
         #print warning if there is more data the limit to download
         _count = retrivedData.json().get('count',1)
         _limit = retrivedData.json().get('limit',1000)
-        if _count > _limit and countExceedsLimit:
+        if _count > _limit and warningsOn:
             print('NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(
                 _count,_limit))
         if verbose == False:
@@ -315,7 +296,7 @@ class getTags(driverCore):
         file_type = 'json',
         params = {},
         verbose=False,
-        countExceedsLimit = True
+        warningsOn = True
     ):
         """
         ** tags extracts  **  
@@ -340,7 +321,7 @@ class getTags(driverCore):
             file_type (str):  choose between 'json' (default) or 'xml'
             params (dict):  override all other options with the entries of this dictionary.  (default {})
             verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
-            countExceedsLimit (bool): print warning if dataset size is larger than the download limit
+            warningsOn (bool): print warning if dataset size is larger than the download limit
         Returns:
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
@@ -352,7 +333,7 @@ class getTags(driverCore):
         #update basequery with passed parameters 
         allArgs = inspect.getfullargspec(self.tags).args
         localVars = locals()
-        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','countExceedsLimit'] } #args that are query params
+        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','warningsOn'] } #args that are query params
         inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
         
         #override if passing arg "params" is non-empty:
@@ -366,7 +347,7 @@ class getTags(driverCore):
         df_output = self._cleanOutput(api,query,retrivedData)
         
         #print warning if there is more data the limit to download
-        if retrivedData.json()['count'] > retrivedData.json()['limit'] and countExceedsLimit:
+        if retrivedData.json()['count'] > retrivedData.json()['limit'] and warningsOn:
             print('NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(
                 retrivedData.json()['count'],retrivedData.json()['limit']))
         if verbose == False:
