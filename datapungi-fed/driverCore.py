@@ -25,8 +25,24 @@ class driverCore():
         self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode        
     
-    def _queryApiCleanOutput(self,urlPrefix,api,localVars,method,params,nonQueryArgs,warningsList):
-        query = self._getBaseQuery('series/',api,localVars,self.series,params,nonQueryArgs)
+    def _queryApiCleanOutput(self,urlPrefix,api,localVars,method,params,nonQueryArgs,warningsList,warningsOn,verbose):
+        '''
+            Core steps of querying and cleaning data.  Notice, specific data cleaning should be 
+            implemented in the specific driver classes
+
+            Args:
+                self - should containg a base request (url)
+                urlPrefix (str) - a string to be appended to request url (eg, https:// ...// -> https//...//urlPrefix?)
+                api (str) - the database being queried (this gets added to the urlPrefix)
+                localVars - the locals() of the main method - basically contain the values of args of the method 
+                method - the function itself (driver) used to get the values of method inputs
+                params (dict) - usually empty, override any query params with the entries of this dictionary
+                nonQueryArgs (list) - the inputs of the method that are not used in a query (eg, verbose)
+                warningsList (list) - the list of events that can lead to warnings
+                warningsOn (bool) - turn on/off driver warnings
+                verbose (bool) - detailed output or short output
+        '''
+        query = self._getBaseQuery(urlPrefix,api,localVars,method,params,nonQueryArgs)
         
         #get data and clean it
         retrivedData = requests.get(**query)
@@ -38,10 +54,12 @@ class driverCore():
         
         #short or detailed output, update _lastLoad attribute:
         output = self._formatOutputupdateLoadedAttrib(query,df_output,retrivedData,verbose)
+        
+        return(output)
     
     def _cleanOutput(self,api,query,retrivedData):
         '''
-         This is a placeholder - specific implementations should have their own cleaning method
+         This is a placeholder - specific drivers should have their own cleaning method
         '''
         return(retrivedData)
     

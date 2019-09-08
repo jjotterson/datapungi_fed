@@ -152,20 +152,10 @@ class getSeries(driverCore):
         localVars = locals() #to get the entries passed in method - the query params
         nonQueryArgs = ['self','api','params','verbose','warningsOn'] #variables that aren't query params.
         warningsList = ['countPassLimit'] #warn on this events.
-        query = self._getBaseQuery('series/',api,localVars,self.series,params,nonQueryArgs)
-        
-        #get data and clean it
-        retrivedData = requests.get(**query)
-        df_output = self._cleanOutput(api,query,retrivedData)
-        
-        #print warning if there is more data the limit to download
-        for entry in warningsList:
-            self._warnings(entry,retrivedData,warningsOn) 
-        
-        #short or detailed output, update _lastLoad attribute:
-        output = self._formatOutputupdateLoadedAttrib(query,df_output,retrivedData,verbose)
+        #TODO: if api = '' then prefixUrl = 'series'
+        output = self._queryApiCleanOutput('series/',api,localVars,self.series,params,nonQueryArgs,warningsList,warningsOn,verbose)
         return(output)
-
+        
     def _cleanOutput(self,api,query,retrivedData):
         if   api == "observations":  
             dataKey = 'observations'
@@ -207,7 +197,7 @@ class getSources(driverCore):
           {callMethod}()
         
         Args:
-            api  (str): choose between "fred/sources" (default), "fred/source", or "fred/source/release"
+            api  (str): choose between "sources" (default), "source", or "source/release"
                 - sources - Get all sources of economic data.
                 - source - Get a source of economic data.
                 - source/releases - Get the releases for a source.
@@ -226,42 +216,13 @@ class getSources(driverCore):
         Returns:
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
-        query = deepcopy(self._baseRequest)
+        localVars = locals() #to get the entries passed in method - the query params
+        nonQueryArgs = ['self','api','params','verbose','warningsOn'] #variables that aren't query params.
+        warningsList = ['countPassLimit'] #warn on this events.
         
-        #update query url
-        query['url'] = query['url']+api
-          
-        #update basequery with passed parameters 
-        allArgs = inspect.getfullargspec(self.sources).args
-        localVars = locals()
-        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','warningsOn'] } #args that are query params
-        inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
+        output = self._queryApiCleanOutput('',api,localVars,self.sources,params,nonQueryArgs,warningsList,warningsOn,verbose)
+        return(output)
         
-        #override if passing arg "params" is non-empty:
-        # - ensure symbols such as + and ; don't get sent to url symbols FED won't read
-        query['params'].update(inputParams)       
-        query['params'].update(params)
-        query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
-        
-        #get data and clean it
-        retrivedData = requests.get(**query)
-        df_output = self._cleanOutput(api,query,retrivedData)
-        
-        #print warning if there is more data the limit to download
-        _count = retrivedData.json().get('count',1)
-        _limit = retrivedData.json().get('limit',1000)
-        if _count > _limit and warningsOn:
-            print('NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(
-                _count,_limit))
-        if verbose == False:
-            self._lastLoad = df_output
-            return(df_output)
-        else:
-            code = _getCode(query,self._connectionInfo.userSettings,self._cleanCode)
-            output = dict(dataFrame = df_output, request = retrivedData, code = code)  
-            self._lastLoad = output
-            return(output)  
-    
     def _cleanOutput(self,api,query,retrivedData):
         if api == "source/releases":  
             dataKey = 'releases'
@@ -325,40 +286,13 @@ class getTags(driverCore):
         Returns:
             output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
         """
-        query = deepcopy(self._baseRequest)
+        localVars = locals() #to get the entries passed in method - the query params
+        nonQueryArgs = ['self','api','params','verbose','warningsOn'] #variables that aren't query params.
+        warningsList = ['countPassLimit'] #warn on this events.
         
-        #update query url
-        query['url'] = query['url']+api
-          
-        #update basequery with passed parameters 
-        allArgs = inspect.getfullargspec(self.tags).args
-        localVars = locals()
-        inputParams = { key:localVars[key] for key in allArgs if key not in ['self','api','params','verbose','warningsOn'] } #args that are query params
-        inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
+        output = self._queryApiCleanOutput('',api,localVars,self.tags,params,nonQueryArgs,warningsList,warningsOn,verbose)
+        return(output)
         
-        #override if passing arg "params" is non-empty:
-        # - ensure symbols such as + and ; don't get sent to url symbols FED won't read
-        query['params'].update(inputParams)       
-        query['params'].update(params)
-        query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
-        
-        #get data and clean it
-        retrivedData = requests.get(**query)
-        df_output = self._cleanOutput(api,query,retrivedData)
-        
-        #print warning if there is more data the limit to download
-        if retrivedData.json()['count'] > retrivedData.json()['limit'] and warningsOn:
-            print('NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(
-                retrivedData.json()['count'],retrivedData.json()['limit']))
-        if verbose == False:
-            self._lastLoad = df_output
-            return(df_output)
-        else:
-            code = _getCode(query,self._connectionInfo.userSettings,self._cleanCode)
-            output = dict(dataFrame = df_output, request = retrivedData, code = code)  
-            self._lastLoad = output
-            return(output)  
-    
     def _cleanOutput(self,api,query,retrivedData):
         if api == "tags/series":
             dataKey = 'seriess'
