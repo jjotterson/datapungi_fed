@@ -17,115 +17,19 @@ from datetime import datetime
 import generalSettings        #NOTE: projectName 
 #from datapungi-fed import utils                  #NOTE: projectName  
 import utils                  #NOTE: projectName  
+from driverCore import driverCore
 
 
-# (1) Auxiliary functions ######################################################
-def _getBaseRequest(baseRequest={},connectionParameters={},userSettings={}):
-    '''
-      Write a base request.  This is the information that gets used in most requests such as getting the userKey
-    '''
-    if baseRequest =={}:
-       connectInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
-       return(connectInfo.baseRequest)
-    else:
-       return(baseRequest)
-
-def _getBaseCode(codeEntries): 
-    '''
-      The base format of a code that can be used to replicate a driver using Requests directly.
-    '''
-    userSettings = utils.getUserSettings()
-    pkgConfig    = utils.getPkgConfig()
-    storagePref  = userSettings['ApiKeysPath'].split('.')[-1]
-    
-    passToCode = {'ApiKeyLabel':userSettings["ApiKeyLabel"], "url":pkgConfig['url'], 'ApiKeysPath':userSettings['ApiKeysPath']}
-    if storagePref == 'json':
-        code = '''
-import requests
-import json    
-import pandas as pd
-
-# json file should contain: {"BEA":{"key":"YOUR KEY","url": "{url}" }
-
-apiKeysFile = '{ApiKeysPath}'
-with open(apiKeysFile) as jsonFile:
-   apiInfo = json.load(jsonFile)
-   url,key = apiInfo['{ApiKeyLabel}']['url'], apiInfo['{ApiKeyLabel}']['key']    
-     '''.format(**passToCode)
-    
-    if storagePref == 'env':
-        code = '''
-import requests
-import os 
-import pandas as pd
-
-url = "{url}"
-key = os.getenv("{ApiKeyLabel}") 
-     '''.format(**passToCode)
-    
-    if storagePref == 'yaml':
-        code = '''
-import requests
-import yaml 
-import pandas as pd
-
-apiKeysFile = '{ApiKeysPath}'
-with open(apiKeysFile, 'r') as stream:
-    apiInfo= yaml.safe_load(stream)
-    url,key = apiInfo['{ApiKeyLabel}']['url'], apiInfo['{ApiKeyLabel}']['key']
-     '''
-    
-    return(code)
-
-def _getCode(query,userSettings={},pandasCode=""):
-    #general code to all drivers:
-    try:
-        url        = query['url']
-        if not userSettings:  #if userSettings is empty dict 
-                apiKeyPath = generalSettings.getGeneralSettings( ).userSettings['ApiKeysPath']
-        else:
-            apiKeyPath = userSettings['ApiKeysPath']
-    except:
-        url         = " incomplete connection information "
-        apiKeyPath = " incomplete connection information "
-    
-    baseCode = _getBaseCode([url,apiKeyPath])
-    
-    #specific code to this driver:
-    queryClean = deepcopy(query)
-    queryClean['url'] = 'url'
-    queryClean['params']['UserID'] = 'key'
-    
-    
-    queryCode = '''
-query = {}
-retrivedData = requests.get(**query)
-
-{} #replace json by xml if this is the request format
-    '''.format(json.dumps(queryClean),pandasCode)
-    
-    queryCode = queryCode.replace('"url": "url"', '"url": url')
-    queryCode = queryCode.replace('"UserID": "key"', '"UserID": key')
-    
-    return(baseCode + queryCode)
-
-def _clipcode(self):
-    '''
-       Copy the string to the user's clipboard (windows only)
-    '''
-    try:
-        pyperclip.copy(self._lastLoad['code'])
-    except:
-        print("Loaded session does not have a code entry.  Re-run with verbose option set to True. eg: v.drivername(...,verbose=True)")
-
-# (2) Drivers ###################################################################
-class getDatasetlist():
-    def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
-        self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
-        self._baseRequest    = _getBaseRequest(baseRequest,connectionParameters,userSettings)  
-        self._lastLoad       = {}  #data stored here to assist functions such as clipcode
-
+class getDatasetlist(driverCore):
     def datasetlist(self):
+        '''
+         Returns name of available datasets, a short description and their query parameters.
+
+         Args:
+
+         Output:
+           - pandas table with query function name, database name, short description and query parameters.
+        '''
         dataPath = utils.getResourcePath('/config/datasetlist.yaml')
         with open(dataPath,'r') as yf:
             datasetlist = yaml.safe_load(yf)
@@ -134,12 +38,62 @@ class getDatasetlist():
         df_output = pd.DataFrame(datasetlistFlat)
         return(df_output)    
 
-class getSeries():
-    def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
-        self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
-        self._baseRequest    = _getBaseRequest(baseRequest,connectionParameters,userSettings)  
-        self._lastLoad       = {}  #data stored here to assist functions such as clipcode
-    
+
+class getCategories():
+    def categories(
+        api = '',
+        offset = '',
+        realtime_end = '',
+        file_type = '',
+        exclude_tag_names = '',
+        order_by = '',
+        sort_order = '',
+        filter_value = '',
+        tag_names = '',
+        category_id = '',
+        limit = '',
+        filter_variable = '',
+        tag_group_id = '',
+        api_key = '',
+        realtime_start = '',
+        search_text = '',
+        params                 = {},
+        verbose                = False,
+        countExceedsLimit      = True
+    ):
+        pass
+
+
+class getReleases():
+
+    def releases(
+        api = '',
+        include_observation_values = '',
+        tag_names = '',
+        search_text = '',
+        observation_date = '',
+        sort_order = '',
+        filter_value = '',
+        limit = '',
+        order_by = '',
+        include_release_dates_with_no_data = '',
+        realtime_end = '',
+        file_type = '',
+        release_id = '',
+        element_id = '',
+        realtime_start = '',
+        offset = '',
+        exclude_tag_names = '',
+        tag_group_id = '',
+        filter_variable = '',
+        params                 = {},
+        verbose                = False,
+        countExceedsLimit      = True
+    ):
+        pass 
+
+
+class getSeries(driverCore):  
     def series(self,
         series_id              =  '',  
         api                    =  'observations',             
@@ -242,9 +196,6 @@ class getSeries():
         df_output =  pd.DataFrame( retrivedData.json()[dataKey] ) #TODO: deal with xml
         setattr(df_output,'meta', dict(filter( lambda entry: entry[0] != dataKey, retrivedData.json().items() ))) #TODO: silence warning
         return(df_output)
-        
-    def clipcode(self):
-        _clipcode(self)
     
     def _driverMetadata(self):
         self.metadata =     [{
@@ -253,12 +204,7 @@ class getSeries():
             "params"     :{ 'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },
         }]
 
-class getSources():
-    def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
-        self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
-        self._baseRequest    = _getBaseRequest(baseRequest,connectionParameters,userSettings)  
-        self._lastLoad       = {}  #data stored here to assist functions such as clipcode
-    
+class getSources(driverCore):    
     def sources(self,
         api = 'sources',
         source_id = '',
@@ -344,9 +290,6 @@ class getSources():
         df_output =  pd.DataFrame( retrivedData.json()[dataKey] ) #TODO: deal with xml
         setattr(df_output,'meta', dict(filter( lambda entry: entry[0] != dataKey, retrivedData.json().items() ))) #TODO: silence warning
         return(df_output)
-        
-    def clipcode(self):
-        _clipcode(self)
     
     def _driverMetadata(self):
         self.metadata =     [{
@@ -356,12 +299,7 @@ class getSources():
         }]
 
 
-class getTags():
-    def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
-        self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
-        self._baseRequest    = _getBaseRequest(baseRequest,connectionParameters,userSettings)  
-        self._lastLoad       = {}  #data stored here to assist functions such as clipcode
-    
+class getTags(driverCore):
     def tags(self,
         api = 'tags',
         tag_names = '',
@@ -449,9 +387,6 @@ class getTags():
         df_output =  pd.DataFrame( retrivedData.json()[dataKey] ) #TODO: deal with xml
         setattr(df_output,'meta', dict(filter( lambda entry: entry[0] != dataKey, retrivedData.json().items() ))) #TODO: silence warning
         return(df_output)
-        
-    def clipcode(self):
-        _clipcode(self)
     
     def _driverMetadata(self):
         self.metadata =     [{
@@ -464,21 +399,23 @@ if __name__ == '__main__':
     #print(_getBaseRequest())
     
     #tags
-    #d = getTags()
-    #v = d.tags('related_tags',tag_names='monetary+aggregates;weekly')
+    d = getTags()
+    v = d.tags('related_tags',tag_names='monetary+aggregates;weekly')
+    print(v)
     #v = d.tags()
     #v = d.tags(api='tags/series',tag_names='slovenia;food;oecd')
     
     #sources
-    #d = getSources()
-    #v = d.sources()
-    #v = d.sources('source','1')
+    d = getSources()
+    v = d.sources()
+    v = d.sources('source','1')
+    print(v)
     #v = d.sources('source/releases','1')
     
     #series
-    #d = getSeries()
-    #v = d.series('GDP')
-    #print(v,v.meta)
+    d = getSeries()
+    v = d.series('GDP')
+    print(v,v.meta)
     #print(v,v.meta)
 
     #dataselist
