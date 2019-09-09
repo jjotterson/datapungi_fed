@@ -1,1 +1,0 @@
-from datapungi-fed.tests.main import runTests

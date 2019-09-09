@@ -2,16 +2,16 @@
 TODO: add explanation of the request part of the vintage.
 -->
 
-[![image](https://img.shields.io/pypi/v/datapungi-fed.svg)](https://pypi.org/project/datapungi-fed/) 
-[![build Status](https://travis-ci.com/jjotterson/datapungi-fed.svg?branch=master)](https://travis-ci.com/jjotterson/datapungi-fed)
-[![downloads](https://img.shields.io/pypi/dm/datapungi-fed.svg)](https://pypi.org/project/datapungi-fed/)
-[![image](https://img.shields.io/pypi/pyversions/datapungi-fed.svg)](https://pypi.org/project/datapungi-fed/)
+[![image](https://img.shields.io/pypi/v/datapungi_fed.svg)](https://pypi.org/project/datapungi_fed/) 
+[![build Status](https://travis-ci.com/jjotterson/datapungi_fed.svg?branch=master)](https://travis-ci.com/jjotterson/datapungi_fed)
+[![downloads](https://img.shields.io/pypi/dm/datapungi_fed.svg)](https://pypi.org/project/datapungi_fed/)
+[![image](https://img.shields.io/pypi/pyversions/datapungi_fed.svg)](https://pypi.org/project/datapungi_fed/)
 
-install code: pip install datapungi-fed 
+install code: pip install datapungi_fed 
 
-<h1> datapungi-fed  </h1>
+<h1> datapungi_fed  </h1>
 
-  datapungi-fed is a python package that provides a simplified way to extract data from the API of Federal Reserve (FED).  Overall it:
+  datapungi_fed is a python package that provides a simplified way to extract data from the API of Federal Reserve (FED).  Overall it:
   - 
   -      
   - can read a saved API key (in json/yaml files or environment variables (default)) to avoid having a copy of it on a script.
@@ -24,19 +24,19 @@ install code: pip install datapungi-fed
   -  [Short sample runs](#Sample-runs)
   -  [Short sample runs of all drivers](#Sample-run-of-all-drivers)
   -  [Description of a full return](#Full-request-result) 
-  -  [Setting up datapungi-fed](#Setting-up-datapungi-fed)
+  -  [Setting up datapungi_fed](#Setting-up-datapungi_fed)
   -  [Testing the package](#Running-Tests) 
 
 ## Sample runs
 
-First, [set the package up](#Setting-up-datapungi-fed) (get an API key from BEA, save it somewhere and let datapungi-fed know its location).  After setting datapungi-fed up, you can run the following:
+First, [set the package up](#Setting-up-datapungi_fed) (get an API key from BEA, save it somewhere and let datapungi_fed know its location).  After setting datapungi_fed up, you can run the following:
 
 ```python
 '''
-  Short datapungi-fed sample run
+  Short datapungi_fed sample run
 '''
 
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 data = dpf.data() #or data = dpf.data("API Key"), see setting up section   
 
@@ -67,7 +67,7 @@ data._clipcode() #copy ccode to clipboard (Windows only).
 Notice that all panda tables include a "meta" section listing units, short table description, revision date etc.  For more detailed metadata, use the verbose = True option (see, [Description of a full return](#Full-request-result)).  
 
 ```python
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 data = dpf.data()
 
@@ -80,7 +80,7 @@ Also, "meta" is not a pandas official attribute; slight changes to the dataframe
 
 ```python
 
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 #start the drivers:
 data = dpf.data()
@@ -154,24 +154,24 @@ is again a dictionary this time with the following entries:
 
 
 
-## Setting up datapungi-fed 
+## Setting up datapungi_fed 
 
 To use the FED API, **the first step** is to get an API key from: 
 
 * 
 
-There are three main options to pass the key to datapungi-fed:
+There are three main options to pass the key to datapungi_fed:
 
 #### (Option 1) Pass the key directly:
 ```python
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 data = dpf.data("API KEY")
 
 data.NIPA('T10101')
 ```
 
-#### (Option 2) Save the key in either a json or yaml file and let datapungi-fed know its location:
+#### (Option 2) Save the key in either a json or yaml file and let datapungi_fed know its location:
 
  sample json file : 
 ```python
@@ -196,7 +196,7 @@ api2:
 Now can either always point to the API location on a run, such as:
 
 ```python
-import datapungi-fed as dpf   
+import datapungi_fed as dpf   
     
 userSettings = {
    'ApiKeysPath':'**C:/MyFolder/myApiKey.yaml**', #or .json
@@ -208,11 +208,11 @@ data = dpf.data(userSettings = userSettings)
 data.NIPA('T10101')
 ```
 
-Or, save the path to your BEA API key on the package's user settings (only need to run the utils once, datapungi-fed will remember it in future runs):
+Or, save the path to your BEA API key on the package's user settings (only need to run the utils once, datapungi_fed will remember it in future runs):
 
 
 ```python
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 dpf.utils.setUserSettings('C:/Path/myKeys.yaml') #or .json
 
@@ -233,7 +233,7 @@ For example, on a command prompt (cmd, powershell etc, or in a virtual environme
 Then start python and run:
 
 ```python
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 data = dpf.data()
 data.NIPA('T10101')
@@ -242,50 +242,50 @@ data.NIPA('T10101')
 Notice: searching for an environment variable named 'FED' is the default option.  If changed to some other option and want to return to the default, run:
 
 ```python
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 dpf.utils.setUserSettings('env')  
 ```
 
-If you want to save the url of the API in the environment, call it FED_url. datapungi-fed will use the provided http address instead of the default 
+If you want to save the url of the API in the environment, call it FED_url. datapungi_fed will use the provided http address instead of the default 
 
 > 
 
 ### Changing the API key name
-  By default, datapungi-fed searches for an API key called 'FED' (in either json/yaml file or in the environment).  In some cases, it's preferable to call it something else (in conda, use FED_Secret to encript it).  To change the name of the key, run
+  By default, datapungi_fed searches for an API key called 'FED' (in either json/yaml file or in the environment).  In some cases, it's preferable to call it something else (in conda, use FED_Secret to encript it).  To change the name of the key, run
 
   ```python
-  import datapungi-fed as dpf
+  import datapungi_fed as dpf
   
   dpf.utils.setKeyName('FED_Secret')  #or anyother prefered key name
   ```
-  When using environment variables, if saving the API url in the environment as well, call it KeyLabel_url (for example, 'FED_Secret_url'). Else, datapungi-fed will use the default one.
+  When using environment variables, if saving the API url in the environment as well, call it KeyLabel_url (for example, 'FED_Secret_url'). Else, datapungi_fed will use the default one.
   
 ## Running Tests
 
-datapungi-fed comes with a family of tests to check its access to the API and the quality of the retrieved data.  They check if:
+datapungi_fed comes with a family of tests to check its access to the API and the quality of the retrieved data.  They check if:
 
 1. the connection to the API is working,
 2. the data cleaning step worked,
 3. the code snippet is executing,
-4. the code snippet produces the same data as the datapungi-fed query.
+4. the code snippet produces the same data as the datapungi_fed query.
 
 Other tests check if the data has being updated of if new data is available.  Most of these tests are run every night on python 3.5, 3.6 and 3.7 (see the code build tag on the top of the document).  However, 
 these test runs are not currently checking the code snippet quality to check if its output is the same as the driver's. To run the tests, including the one 
 that checks code snippet quality, type:
 
 ```python
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 dpf.tests.runTests(outputPath = 'C:/Your Path/')
 ```
 
-This will save an html file in the path specified called datapungi-fed_Tests.html
+This will save an html file in the path specified called datapungi_fed_Tests.html
 
 You can save your test output folder in the user settings as well (need / at the end):
 
 ```python
-import datapungi-fed as dpf
+import datapungi_fed as dpf
 
 dpf.utils.setTestFolder('C:/mytestFolder/')
 ```

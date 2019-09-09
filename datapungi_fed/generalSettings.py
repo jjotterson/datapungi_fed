@@ -6,7 +6,7 @@
   and the datasource url and user api key.
 '''
 
-import utils
+from datapungi_fed import utils
 
 class getGeneralSettings(): #NOTE: write as a mixin?
     def __init__(self,connectionParameters={},userSettings={}):
@@ -70,7 +70,7 @@ def getDatasourceOverview():
 
 def getPackageMetadata():
     output = {
-        "name":             "datapungi-fed",
+        "name":             "datapungi_fed",
         "loadPackageAs" :   "dpf",
         "apiClass":         "data",
         "displayName":      "FED",

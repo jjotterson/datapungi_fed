@@ -1,6 +1,6 @@
 import subprocess
 import os
-from datapungi-fed.utils import getUserSettings
+from datapungi_fed.utils import getUserSettings
 
 
 def runTests(outputPath='',testsPath='',verbose = True):
@@ -14,9 +14,9 @@ def runTests(outputPath='',testsPath='',verbose = True):
             outputPath = settingsFile['TestsOutputPath']
         except:
             print("Could not load TestOutputPath from user settings.  Perhaps run util.setTestFolder( FilePath )  ")
-    subprocess.Popen('pytest ' + testsPath + ' --html='+outputPath+'datapungi-fed_Tests.html --self-contained-html')
+    subprocess.Popen('pytest ' + testsPath + ' --html='+outputPath+'datapungi_fed_Tests.html --self-contained-html')
     if verbose:
-        print('Tests will be saved in '+outputPath+'datapungi-fed_Tests.html \n****************************')
+        print('Tests will be saved in '+outputPath+'datapungi_fed_Tests.html \n****************************')
 
 if __name__ == '__main__':
     from sys import argv    

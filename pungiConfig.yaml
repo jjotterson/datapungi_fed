@@ -1,9 +1,9 @@
 author: James Otterson
 email: jjotterson@gmail.com
-projectName: datapungi-fed
+projectName: datapungi_fed
 importAs: dpf
 shortDescription: 'Access data from the Federal Reserve (FED)'
-url: https://github.com/jjotterson/datapungi-fed
+url: https://github.com/jjotterson/datapungi_fed
 sourceName : Federal Reserve
 sourceNameShort: FED
 sorceUrl : https://api.stlouisfed.org/

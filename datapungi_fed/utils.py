@@ -1,5 +1,5 @@
 '''
-datapungi-fed.utils
+datapungi_fed.utils
 ~~~~~~~~~~~~~~~~~~
 
 This module provides utility functions that are used 
@@ -62,7 +62,7 @@ def getResourcePath(relativePath, resource_package = __name__):
      will return
      datapungibea path + relative path
      note: can replace resource_package with package name:
-     eg: 'datapungi-fed'
+     eg: 'datapungi_fed'
     '''
     fullPath = pkg_resources.resource_filename(resource_package, relativePath)
     return(fullPath)
@@ -110,7 +110,7 @@ def setUserSettings(newPath):  #TODO: check if still valid
     '''
        sets the api key path in the package config file. 
        eg:
-       import datapungi-fed as dp
+       import datapungi_fed as dp
        dp.utils.setUserSettings('myPath')
     '''
     userSettingsPath = getResourcePath('/config/userSettings.json')
@@ -128,14 +128,14 @@ def setUserSettings(newPath):  #TODO: check if still valid
             json.dump(config,jsonFile)
         print('Path to the API Keys updated! New Path: \n' + config['ApiKeysPath'])
     except:
-        print('Could not save the configuration to file: \n datapungi-fed/config/userSettings.json \n Path API Key not updated')
+        print('Could not save the configuration to file: \n datapungi_fed/config/userSettings.json \n Path API Key not updated')
         pass
 
 def setKeyName(newName):  #TODO: check if still valid
     '''
        sets the api key name in the package config file. 
        eg:
-       import datapungi-fed as dp
+       import datapungi_fed as dp
        dp.utils.setKeyName('BEA_Secrete')
     '''
     userSettingsPath = getResourcePath('/config/userSettings.json')
@@ -143,7 +143,7 @@ def setKeyName(newName):  #TODO: check if still valid
         with open(userSettingsPath) as jsonFile:
              config = json.load(jsonFile)
     except:
-        print('Could not open the configuration file: \n datapungi-fed/config/userSettings.json')
+        print('Could not open the configuration file: \n datapungi_fed/config/userSettings.json')
         pass
     
     config["ApiKeyLabel"] = newName

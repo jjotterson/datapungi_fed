@@ -1,9 +1,9 @@
 import pandas as pd
 import requests
-#from datapungi-fed import generalSettings 
-import generalSettings 
-#from datapungi-fed import drivers
-import drivers
+from datapungi_fed import generalSettings 
+#import generalSettings 
+from datapungi_fed import drivers
+#import drivers
 
 #TODO: improve delegation (want name of methods - getDatasetlis - to be _get... or be all in a loadedDrivers class etc.  These shouldn't be 
 #      easy for user access)
@@ -49,11 +49,12 @@ class data(delegator):
        :param userSettings: settings saved in the packge pointing to a yaml/json or env containing the connection parameters 
     '''
     DELEGATED_METHODS = {
-                #'getCategories' :  ['categories'],
-                #'getReleases'   :  ['releases'],
-                #'getSeries'     :  ['series'],
-                'getSources'    :  ['sources'],
-                'getTags'       :  ['tags'],
+                'getDatasetlist' :  ['datasetlist'],
+                'getCategories'  :  ['categories'],
+                'getReleases'    :  ['releases'],
+                'getSeries'      :  ['series'],
+                'getSources'     :  ['sources'],
+                'getTags'        :  ['tags'],
             }
     def __init__(self,connectionParameters = {}, userSettings = {}):
         self.__connectInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings ) 
@@ -61,9 +62,10 @@ class data(delegator):
         self._help     = self.__connectInfo.datasourceOverview
         #load drivers:
         loadInfo = {'baseRequest' : self.__connectInfo.baseRequest, 'connectionParameters' : self.__connectInfo.connectionParameters}
-        #self.getCategories = drivers.getCategories(**loadInfo)
-        #self.getReleases   = drivers.getReleases(**loadInfo)
-        #self.getSeries     = drivers.getSeries(**loadInfo)
+        self.getDatasetlist = drivers.getDatasetlist(**loadInfo)
+        self.getCategories = drivers.getCategories(**loadInfo)
+        self.getReleases   = drivers.getReleases(**loadInfo)
+        self.getSeries     = drivers.getSeries(**loadInfo)
         self.getSources    = drivers.getSources(**loadInfo)
         self.getTags       = drivers.getTags(**loadInfo)
         #self.getGetParameterList           = drivers.getGetParameterList(**loadInfo)
@@ -80,7 +82,7 @@ class data(delegator):
             print('Get data using a driver first, eg: ')
             #eg: data.NIPA("T10101", verbose = True)
     
-    def _docDriver(self,driverName):
+    def _docDriver(self,driverName,printHelp=True):
         '''
           Given the delegated method name, get the __doc__ of its class.  
           eg: 
@@ -89,6 +91,8 @@ class data(delegator):
         #eg: _docDriver('NIPA') 
         parentName = list(self.DELEGATED_METHODS.keys())[list(self.DELEGATED_METHODS.values()).index([driverName])]
         outhelp = getattr(getattr(self,parentName ),driverName).__doc__
+        if printHelp:
+            print(outhelp)
         return(outhelp)
         
 

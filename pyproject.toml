@@ -3,10 +3,10 @@ requires = ["flit"]
 build-backend = "flit.buildapi"
 
 [tool.flit.metadata]
-module = "datapungi-fed"
+module = "datapungi_fed"
 author = "James Otterson"
 author-email = "jjotterson@gmail.com"
-home-page = "https://github.com/jjotterson/datapungi-fed"
+home-page = "https://github.com/jjotterson/datapungi_fed"
 requires=[
     "requests",
     "pandas",
