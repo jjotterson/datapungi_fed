@@ -104,6 +104,7 @@ class driverCore():
            return(connectInfo.baseRequest)
         else:
            return(baseRequest)
+    
     def _formatOutputupdateLoadedAttrib(self,query,df_output,retrivedData,verbose):
         if verbose == False:
             self._lastLoad = df_output

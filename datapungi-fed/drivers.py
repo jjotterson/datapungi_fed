@@ -40,33 +40,83 @@ class getDatasetlist(driverCore):
 
 
 class getCategories(driverCore):
-    def categories(
+    def categories(self,
+        category_id = '',
         api = '',
-        offset = '',
+        search_text = '',
+        realtime_start = '',
         realtime_end = '',
-        file_type = '',
+        tag_names = '',
+        tag_group_id = '',
         exclude_tag_names = '',
+        filter_value = '',
         order_by = '',
         sort_order = '',
-        filter_value = '',
-        tag_names = '',
-        category_id = '',
         limit = '',
         filter_variable = '',
-        tag_group_id = '',
-        api_key = '',
-        realtime_start = '',
-        search_text = '',
+        offset = '',
+        file_type = '',
         params                 = {},
         verbose                = False,
         warningsOn      = True
     ):
-        pass
+        '''
+          Args:
+              api (str): '' (default), children, related, series, tags, related_tags
+              offset 
+              realtime_end 
+              file_type 
+              exclude_tag_names 
+              order_by 
+              sort_order 
+              filter_value 
+              tag_names 
+              category_id 
+              limit 
+              filter_variable 
+              tag_group_id 
+              api_key 
+              realtime_start 
+              search_text 
+              params              
+              verbose             
+              warningsOn      
+        '''
+        #get requests' query inputs
+        localVars = locals() #to get the entries passed in method - the query params
+        nonQueryArgs = ['self','api','params','verbose','warningsOn'] #variables that aren't query params.
+        warningsList = ['countPassLimit'] #warn on this events.
+        #TODO: if api = '' then prefixUrl = 'series'
+        if api == '':
+            prefixUrl = 'category'
+        else:
+            prefixUrl = 'category/'
+        output = self._queryApiCleanOutput(prefixUrl,api,localVars,self.categories,params,nonQueryArgs,warningsList,warningsOn,verbose)
+        return(output)
+        
+    def _cleanOutput(self,api,query,retrivedData):
+        if   api == "observations":  
+            dataKey = 'observations'
+        elif api == 'series':
+            dataKey = 'series'
+        else:
+            dataKey = 'categories'
+        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
+        df_output =  pd.DataFrame( retrivedData.json()[dataKey] ) #TODO: deal with xml
+        setattr(df_output,'meta', dict(filter( lambda entry: entry[0] != dataKey, retrivedData.json().items() ))) #TODO: silence warning
+        return(df_output)
+    
+    def _driverMetadata(self):
+        self.metadata =     [{
+            "displayName":"tags",
+            "method"     :"tags",   #Name of driver main function - run with getattr(data,'datasetlist')()
+            "params"     :{ 'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },
+        }]
 
 
 class getReleases(driverCore):
-    def releases(
-        api = '',
+    def releases(self,
+        api = 'releases',
         include_observation_values = '',
         tag_names = '',
         search_text = '',
@@ -89,7 +139,36 @@ class getReleases(driverCore):
         verbose                = False,
         warningsOn      = True
     ):
-        pass 
+        '''
+        api (str):     releases (default), releases/dates,release,release/dates,release/series,release/sources,
+                       release/tags,release/related_tags,release/tables       
+        '''
+        #get requests' query inputs
+        localVars = locals() #to get the entries passed in method - the query params
+        nonQueryArgs = ['self','api','params','verbose','warningsOn'] #variables that aren't query params.
+        warningsList = ['countPassLimit'] #warn on this events.
+        #TODO: if api = '' then prefixUrl = 'series'
+        output = self._queryApiCleanOutput('',api,localVars,self.releases,params,nonQueryArgs,warningsList,warningsOn,verbose)
+        return(output)
+        
+    def _cleanOutput(self,api,query,retrivedData):
+        if   api == "observations":  
+            dataKey = 'observations'
+        elif api == 'series':
+            dataKey = 'series'
+        else:
+            dataKey = 'releases'
+        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
+        df_output =  pd.DataFrame( retrivedData.json()[dataKey] ) #TODO: deal with xml
+        setattr(df_output,'meta', dict(filter( lambda entry: entry[0] != dataKey, retrivedData.json().items() ))) #TODO: silence warning
+        return(df_output)
+    
+    def _driverMetadata(self):
+        self.metadata =     [{
+            "displayName":"tags",
+            "method"     :"tags",   #Name of driver main function - run with getattr(data,'datasetlist')()
+            "params"     :{ 'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },
+        }]
 
 
 class getSeries(driverCore):  
@@ -320,6 +399,16 @@ if __name__ == '__main__':
     #v = d.tags()
     #v = d.tags(api='tags/series',tag_names='slovenia;food;oecd')
     
+    #categories
+    d = getCategories()
+    v = d.categories('125')
+    print(v)
+    
+    #releases
+    d = getReleases()
+    v = d.releases()
+    print(v)
+
     #sources
     d = getSources()
     v = d.sources()
