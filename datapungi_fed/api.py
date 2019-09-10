@@ -49,7 +49,7 @@ class data(delegator):
        :param userSettings: settings saved in the packge pointing to a yaml/json or env containing the connection parameters 
     '''
     DELEGATED_METHODS = {
-                'getDatasetlist' :  ['datasetlist'],
+                #'getDatasetlist' :  ['datasetlist'],
                 'getCategories'  :  ['categories'],
                 'getReleases'    :  ['releases'],
                 'getSeries'      :  ['series'],
@@ -62,7 +62,7 @@ class data(delegator):
         self._help     = self.__connectInfo.datasourceOverview
         #load drivers:
         loadInfo = {'baseRequest' : self.__connectInfo.baseRequest, 'connectionParameters' : self.__connectInfo.connectionParameters}
-        self.getDatasetlist = drivers.getDatasetlist(**loadInfo)
+        self.datasetlist   = drivers.datasetlist(**loadInfo)
         self.getCategories = drivers.getCategories(**loadInfo)
         self.getReleases   = drivers.getReleases(**loadInfo)
         self.getSeries     = drivers.getSeries(**loadInfo)

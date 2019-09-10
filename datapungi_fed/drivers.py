@@ -20,8 +20,8 @@ from datapungi_fed import utils  # NOTE: projectName
 from datapungi_fed.driverCore import driverCore
 
 
-class getDatasetlist(driverCore):
-    def datasetlist(self):
+class datasetlist(driverCore):
+    def query(self):
         '''
          Returns name of available datasets, a short description and their query parameters.
          Args:
@@ -38,33 +38,23 @@ class getDatasetlist(driverCore):
             datasetlistExp))  # flatten the array of array
         df_output = pd.DataFrame(datasetlistFlat)
         return(df_output)
+    def __call__(self):
+        return(self.query())
 
-
-class getCategories(driverCore):
-    def categories(self,
-                   category_id='', api='', search_text='',
-                   realtime_start='', realtime_end='',
-                   tag_names='', tag_group_id='', exclude_tag_names='',
-                   filter_value='', filter_variable='',
-                   order_by='', sort_order='',
-                   limit='', offset='',
-                   file_type='json',
-                   params={},
-                   verbose=False,
-                   warningsOn=True
-                   ):
+class categories(driverCore):
+    def __init__(self,*args, **kwargs):
+        '''
+          Initializes a dictionary of db queries
+        '''
+        super(categories, self).__init__(*args, **kwargs)
+        self.dbParams = self._dbParameters()
+        self.queryFactory = { key : lambda *args,**kwargs: args for key in self.dbParams.keys() }
+        
+    def query(self,params={},file_type='json',verbose=False,warningsOn=True):
         '''
           Args:
-            api (str)           | Arguments of the given api 
-              '' (default) :  	[category_id]
-              children     :   	[category_id, realtime_start, realtime_end]
-              related      :   	[category_id, realtime_start, realtime_end]
-              series       :   	[category_id, realtime_start, realtime_end, limit, offset, order_by,
-                                 sort_order, filter_variable, filter_value, tag_names, exclude_tag_names]
-              tags         :    [category_id, realtime_start, realtime_end, tag_names, tag_group_id, search_text, limit, offset, order_by, sort_order]
-              related_tags : 	[category_id, realtime_start, realtime_end, tag_names, 
-                                   exclude_tag_names, tag_group_id, search_text, limit, offset, order_by]
-            params              
+            params
+            file_type              
             verbose             
             warningsOn      
         '''
@@ -104,7 +94,24 @@ class getCategories(driverCore):
             "method": "tags",
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
+    
+    def __call__(self,*args,**kwargs):
+        allArgs = inspect.getfullargspec(self.query).args
+        return(self.query(*args,**kwargs))
 
+    def _dbParameters(self):
+        '''
+          The parameters of each database in the group (will be assigned empty by default)
+        '''    
+        dbParams = {
+            ''            : {'urlSuffix': 'category' ,              'params': ['category_id']},
+            'children'    : {'urlSuffix': 'category/children'     , 'params': ['category_id', 'realtime_start', 'realtime_end']},
+            'related'     : {'urlSuffix': 'category/related'      , 'params': ['category_id', 'realtime_start', 'realtime_end']},
+            'series'      : {'urlSuffix': 'category/series'       , 'params': ['category_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by','sort_order', 'filter_variable', 'filter_value', 'tag_names', 'exclude_tag_names']},
+            'tags'        : {'urlSuffix': 'category/tags'         , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
+            'related_tags': {'urlSuffix': 'category/related_tags' , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by']},
+        }
+        return(dbParams)
 
 class getReleases(driverCore):
     def releases(self,
