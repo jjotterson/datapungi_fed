@@ -46,11 +46,11 @@ class categories(driverCore):
         '''
           Initializes a dictionary of db queries
         '''
-        super(categories, self).__init__(*args, **kwargs)
+        super(categories, self).__init__(**kwargs)
         self.dbParams = self._dbParameters()
-        self.queryFactory = { key : lambda *args,**kwargs: args for key in self.dbParams.keys() }
+        self.queryFactory = { key : lambda *args,**kwargs: self.query(*args,**kwargs) for key in self.dbParams.keys() }
         
-    def query(self,params={},file_type='json',verbose=False,warningsOn=True):
+    def query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
         '''
           Args:
             params
@@ -385,37 +385,37 @@ class getTags(driverCore):
 
 if __name__ == '__main__':
     # print(_getBaseRequest())
+    # dataselist
+    #d = getDatasetlist()
+    d = datasetlist()
+    print(d())
 
     # tags
-    d = getTags()
-    v = d.tags('related_tags', tag_names='monetary+aggregates;weekly')
-    print(v)
+    #d = getTags()
+    #v = d.tags('related_tags', tag_names='monetary+aggregates;weekly')
+    #print(v)
     #v = d.tags()
     #v = d.tags(api='tags/series',tag_names='slovenia;food;oecd')
 
     # categories
-    d = getCategories()
-    v = d.categories('125')
-    print(v)
+    v = categories('125')
+    print(v())
 
     # releases
-    d = getReleases()
-    v = d.releases()
-    print(v)
+    #d = getReleases()
+    #v = d.releases()
+    #print(v)
 
     # sources
-    d = getSources()
-    v = d.sources()
-    v = d.sources('source', '1')
+    #d = getSources()
+    #v = d.sources()
+    #v = d.sources('source', '1')
     print(v)
     #v = d.sources('source/releases','1')
 
     # series
-    d = getSeries()
-    v = d.series('GDP')
-    print(v, v.meta)
+    #d = getSeries()
+    #v = d.series('GDP')
+    #print(v, v.meta)
     # print(v,v.meta)
 
-    # dataselist
-    d = getDatasetlist()
-    print(d.datasetlist())
