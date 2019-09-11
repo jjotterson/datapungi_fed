@@ -42,11 +42,13 @@ class driverCore():
                 warningsOn (bool) - turn on/off driver warnings
                 verbose (bool) - detailed output or short output
         '''
-        query = self._getBaseQuery(urlPrefix,api,localVars,method,params,nonQueryArgs)
         
-        #get data and clean it
+        #get data 
+        query = self._getBaseQuery(urlPrefix,dbName,params)
         retrivedData = requests.get(**query)
-        df_output = self._cleanOutput(api,query,retrivedData)
+        
+        #clean data
+        df_output = self._cleanOutput(dbName,query,retrivedData)
         
         #print warning if there is more data the limit to download
         for entry in warningsList:
@@ -63,7 +65,7 @@ class driverCore():
         '''
         return(retrivedData)
     
-    def _getBaseQuery(self,urlPrefix,dbName,params,removeMethodArgs):
+    def _getBaseQuery(self,urlPrefix,dbName,params):
         '''
           Return a dictionary of request arguments.
 
@@ -80,16 +82,16 @@ class driverCore():
         query = deepcopy(self._baseRequest)
         
         #update query url
-        query['url'] = query['url']+urlPrefix+api
+        query['url'] = query['url']+urlPrefix
           
         #update basequery with passed parameters 
-        allArgs = inspect.getfullargspec(method).args
-        inputParams = { key:localVars[key] for key in allArgs if key not in removeMethodArgs } #args that are query params
-        inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
-        
-        #override if passing arg "params" is non-empty:
-        # - ensure symbols such as + and ; don't get sent to url symbols FED won't read
-        query['params'].update(inputParams)       
+        #allArgs = inspect.getfullargspec(method).args
+        #inputParams = { key:localVars[key] for key in allArgs if key not in removeMethodArgs } #args that are query params
+        #inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
+        #
+        ##override if passing arg "params" is non-empty:
+        ## - ensure symbols such as + and ; don't get sent to url symbols FED won't read
+        #query['params'].update(inputParams)       
         query['params'].update(params)
         query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
 
