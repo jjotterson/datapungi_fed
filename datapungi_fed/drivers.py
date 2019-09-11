@@ -21,7 +21,7 @@ from datapungi_fed.driverCore import driverCore
 
 
 class datasetlist(driverCore):
-    def query(self):
+    def _query(self):
         '''
          Returns name of available datasets, a short description and their query parameters.
          Args:
@@ -39,7 +39,7 @@ class datasetlist(driverCore):
         df_output = pd.DataFrame(datasetlistFlat)
         return(df_output)
     def __call__(self):
-        return(self.query())
+        return(self._query())
 
 class categories(driverCore):
     def __init__(self,*args, **kwargs):
@@ -48,9 +48,9 @@ class categories(driverCore):
         '''
         super(categories, self).__init__(**kwargs)
         self.dbParams = self._dbParameters()
-        self.queryFactory = { key : lambda *args,**kwargs: self.query(*args,**kwargs) for key in self.dbParams.keys() }
+        self.queryFactory = { dbName : lambda *args,**kwargs: self._query(dbName=dbName,**self._getQueryArgs(dbName,*args,**kwargs)) for dbName in self.dbParams.keys() }
         
-    def query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
+    def _query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
         '''
           Args:
             params
@@ -63,15 +63,23 @@ class categories(driverCore):
         # variables that aren't query params.
         nonQueryArgs = ['self', 'api', 'params', 'verbose', 'warningsOn']
         warningsList = ['countPassLimit']  # warn on this events.
-        # TODO: if api = '' then prefixUrl = 'series'
-        if api == '':
-            prefixUrl = 'category'
-        else:
-            prefixUrl = 'category/'
-        output = self._queryApiCleanOutput(
-            prefixUrl, api, localVars, self.categories, params, nonQueryArgs, warningsList, warningsOn, verbose)
+        prefixUrl = self.dbParams[dbName]['urlSuffix']
+        output = self._queryApiCleanOutput(prefixUrl, dbName, params, nonQueryArgs, warningsList, warningsOn, verbose)
         return(output)
-
+    
+    def _getQueryArgs(self,dbName,*args,**kwargs):
+        '''
+          Map args and kwargs to driver args
+        '''
+        #paramaters to be passed to a requests query:
+        paramArray = self.dbParams[dbName]['params']
+        params = dict(zip(paramArray,args))
+        paramsAdd = {key:val for key, val in kwargs.items() if key in paramArray}
+        params.update(paramsAdd)
+        #non query options (eg, verbose)
+        otherArgs = {key:val for key, val in kwargs.items() if not key in paramArray}
+        return({**{'params':params},**otherArgs})
+    
     def _cleanOutput(self, api, query, retrivedData):
         if api == "observations":
             dataKey = 'observations'
@@ -86,7 +94,7 @@ class categories(driverCore):
         setattr(df_output, 'meta', dict(filter(
             lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
         return(df_output)
-
+    
     def _driverMetadata(self):
         self.metadata = [{
             "displayName": "tags",
@@ -96,9 +104,10 @@ class categories(driverCore):
         }]
     
     def __call__(self,*args,**kwargs):
-        allArgs = inspect.getfullargspec(self.query).args
-        return(self.query(*args,**kwargs))
-
+        allArgs = inspect.getfullargspec(self._query).args
+        out = self.queryFactory[''](125)
+        return(self._query(dbName = '', *args,**kwargs))
+    
     def _dbParameters(self):
         '''
           The parameters of each database in the group (will be assigned empty by default)
@@ -112,6 +121,7 @@ class categories(driverCore):
             'related_tags': {'urlSuffix': 'category/related_tags' , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by']},
         }
         return(dbParams)
+
 
 class getReleases(driverCore):
     def releases(self,

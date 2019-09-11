@@ -25,7 +25,7 @@ class driverCore():
         self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode        
     
-    def _queryApiCleanOutput(self,urlPrefix,api,localVars,method,params,nonQueryArgs,warningsList,warningsOn,verbose):
+    def _queryApiCleanOutput(self,urlPrefix,dbName,params,warningsList,warningsOn,verbose):
         '''
             Core steps of querying and cleaning data.  Notice, specific data cleaning should be 
             implemented in the specific driver classes
@@ -63,7 +63,7 @@ class driverCore():
         '''
         return(retrivedData)
     
-    def _getBaseQuery(self,urlPrefix,api,localVars,method,params,removeMethodArgs):
+    def _getBaseQuery(self,urlPrefix,dbName,params,removeMethodArgs):
         '''
           Return a dictionary of request arguments.
 
