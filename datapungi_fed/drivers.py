@@ -12,7 +12,7 @@ import re
 import inspect
 import yaml
 import itertools
-import functools
+
 from datetime import datetime
 #from datapungi_fed import generalSettings  # NOTE: projectName
 import generalSettings        #NOTE: projectName
@@ -48,49 +48,10 @@ class categories(driverCore):
           Initializes a dictionary of db queries
         '''
         super(categories, self).__init__(**kwargs)
-        self.dbParams = self._dbParameters()
+        self.dbGroupName = 'Categories'
+        self.dbParams = self._dbParameters(self.dbGroupName)
         self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
-
-    def _selectDBQuery(self,queryFun,dbName):
-        '''
-          Fix a generic query to a query to dbName, creates a lambda that, from
-          args/kwargs creates a query of the dbName 
-        '''
-        fun  = functools.partial(queryFun,dbName)
-        lfun = lambda *args,**kwargs: fun(**self._getQueryArgs(dbName,*args,**kwargs))
-        #add quick user tips
-        lfun.options = self.dbParams[dbName]['params']
-        return(lfun)
-
-    def _query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
-        '''
-          Args:
-            params
-            file_type              
-            verbose             
-            warningsOn      
-        '''
-        # get requests' query inputs
-        warningsList = ['countPassLimit']  # warn on this events.
-        prefixUrl = self.dbParams[dbName]['urlSuffix']
-        output = self._queryApiCleanOutput(prefixUrl, dbName, params, warningsList, warningsOn, verbose)
-        return(output)
-    
-    def _getQueryArgs(self,dbName,*args,**kwargs):
-        '''
-          Map args and kwargs to driver args
-        '''
-        #paramaters to be passed to a requests query:
-        paramArray = self.dbParams[dbName]['params']
-        params = dict(zip(paramArray,args))
-        paramsAdd = {key:val for key, val in kwargs.items() if key in paramArray}
-        params.update(paramsAdd)
-        #non query options (eg, verbose)
-        otherArgs = {key:val for key, val in kwargs.items() if not key in paramArray}
-        return({**{'params':params},**otherArgs})
-
-    def __getitem__(self,dbName):
-        return(self.queryFactory[dbName])
+        self.defaultQueryFactoryEntry = 'category'  #the entry in query factory that __call__ will use.
     
     def _cleanOutput(self, dbName, query, retrivedData):
         if dbName == "observations":
@@ -114,29 +75,26 @@ class categories(driverCore):
             "method": "tags",
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
-    
-    def __call__(self,*args,**kwargs):
-        out = self.queryFactory['category'](*args,**kwargs)
-        return(out)
-    
-    def _dbParameters(self):
+       
+    def _dbParameters(self,dbGroupName = ''):
         '''
           The parameters of each database in the group (will be assigned empty by default)
-        '''    
-        dbParams = {
-            'category'    : {'urlSuffix': 'category' ,              'params': ['category_id']},
-            'children'    : {'urlSuffix': 'category/children'     , 'params': ['category_id', 'realtime_start', 'realtime_end']},
-            'related'     : {'urlSuffix': 'category/related'      , 'params': ['category_id', 'realtime_start', 'realtime_end']},
-            'series'      : {'urlSuffix': 'category/series'       , 'params': ['category_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by','sort_order', 'filter_variable', 'filter_value', 'tag_names', 'exclude_tag_names']},
-            'tags'        : {'urlSuffix': 'category/tags'         , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-            'related_tags': {'urlSuffix': 'category/related_tags' , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by']},
-        }
+        '''  
+        dataPath = utils.getResourcePath('/config/datasetlist.yaml')
+        with open(dataPath, 'r') as yf:
+            datasetlist = yaml.safe_load(yf)
+
+        
+        #get the entry of the group:
+        datasets = list(filter( lambda x: x['group'] == dbGroupName , datasetlist))[0]['datasets']
+        removeCases = lambda array: list(filter( lambda x: x not in ['api_key','file_type']  , array ))
+        dbParams = { entry['short name'] : { 'urlSuffix' : entry['database'] , 'params': removeCases(entry['parameters']) } for entry in datasets }
+        
         return(dbParams)
 
 
 class releases(driverCore):
-    def releases(self,
-                 
+    def releases(self,          
                  file_type='json',
                  params={},
                  verbose=False,
@@ -274,16 +232,16 @@ class getSeries(driverCore):
           The parameters of each database in the group (will be assigned empty by default)
         '''    
         dbParams = {
-              'observations'          :	{ 'urlSuffix': , 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'sort_order', 'observation_start', 'observation_end', 'units', 'frequency', 'aggregation_method', 'output_type', 'vintage_dates']},
-              '' 	                  :	{ 'urlSuffix': , 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
-              'categories'	          :	{ 'urlSuffix': , 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
-              'release'		          :	{ 'urlSuffix': , 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
-              'search'		          :	{ 'urlSuffix': , 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
-              'search/tags'	          :	{ 'urlSuffix': , 'params': [ 'series_search_text', 'realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'tag_search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-              'search/related_tags'	  :	{ 'urlSuffix': , 'params': [ 'series_search_text', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'tag_search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-              'tags'		          :	{ 'urlSuffix': , 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'order_by','sort_order'']},
-              'updates'		          :	{ 'urlSuffix': , 'params': [ 'realtime_start', 'realtime_end', 'limit', 'offset', 'filter_value', 'start_time', 'end_time']},
-              'vintagedates'          :	{ 'urlSuffix': , 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'sort_order']},
+              'observations'          :	{ 'urlSuffix': 'observations', 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'sort_order', 'observation_start', 'observation_end', 'units', 'frequency', 'aggregation_method', 'output_type', 'vintage_dates']},
+              '' 	                  :	{ 'urlSuffix': '', 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
+              'categories'	          :	{ 'urlSuffix': 'categories', 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
+              'release'		          :	{ 'urlSuffix': 'release', 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
+              'search'		          :	{ 'urlSuffix': 'search', 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
+              'search/tags'	          :	{ 'urlSuffix': 'search/tags', 'params': [ 'series_search_text', 'realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'tag_search_text', 'limit', 'offset', 'order_by', 'sort_order']},
+              'search/related_tags'	  :	{ 'urlSuffix': 'search/related_tags', 'params': [ 'series_search_text', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'tag_search_text', 'limit', 'offset', 'order_by', 'sort_order']},
+              'tags'		          :	{ 'urlSuffix': 'tags', 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'order_by','sort_order']},
+              'updates'		          :	{ 'urlSuffix': 'updates', 'params': [ 'realtime_start', 'realtime_end', 'limit', 'offset', 'filter_value', 'start_time', 'end_time']},
+              'vintagedates'          :	{ 'urlSuffix': 'vintagedates', 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'sort_order']},
         }    
         return(dbParams)
 
@@ -306,9 +264,6 @@ class getSources(driverCore):
 
         Args:
             api  (str): choose between "sources" (default), "source", or "source/release"
-                 sources		  :	[  realtime_start, realtime_end, limit, offset, order_by, sort_order]
-                 source		      :	[  source_id, realtime_start, realtime_end]
-                 source/releases  :	[  source_id, realtime_start, realtime_end, limit, offset, order_by, sort_order]
             file_type (str):  choose between 'json' (default) or 'xml'
             params (dict):  override all other options with the entries of this dictionary.  (default {})
             verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
@@ -351,12 +306,9 @@ class getSources(driverCore):
           The parameters of each database in the group (will be assigned empty by default)
         '''    
         dbParams = {
-            'category'    : {'urlSuffix': 'category' ,              'params': ['category_id']},
-            'children'    : {'urlSuffix': 'category/children'     , 'params': ['category_id', 'realtime_start', 'realtime_end']},
-            'related'     : {'urlSuffix': 'category/related'      , 'params': ['category_id', 'realtime_start', 'realtime_end']},
-            'series'      : {'urlSuffix': 'category/series'       , 'params': ['category_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by','sort_order', 'filter_variable', 'filter_value', 'tag_names', 'exclude_tag_names']},
-            'tags'        : {'urlSuffix': 'category/tags'         , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-            'related_tags': {'urlSuffix': 'category/related_tags' , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by']},
+            'sources'		    :	{'urlSuffix': 'sources'		 , 'params': [  'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order']},
+            'source'		    :	{'urlSuffix': 'source'		 , 'params': [  'source_id', 'realtime_start', 'realtime_end']},
+            'source/releases'   :	{'urlSuffix': 'source/releases', 'params': [  'source_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order']},
         }
         return(dbParams)
 
@@ -425,12 +377,9 @@ class getTags(driverCore):
           The parameters of each database in the group (will be assigned empty by default)
         '''    
         dbParams = {
-            'category'    : {'urlSuffix': 'category' ,              'params': ['category_id']},
-            'children'    : {'urlSuffix': 'category/children'     , 'params': ['category_id', 'realtime_start', 'realtime_end']},
-            'related'     : {'urlSuffix': 'category/related'      , 'params': ['category_id', 'realtime_start', 'realtime_end']},
-            'series'      : {'urlSuffix': 'category/series'       , 'params': ['category_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by','sort_order', 'filter_variable', 'filter_value', 'tag_names', 'exclude_tag_names']},
-            'tags'        : {'urlSuffix': 'category/tags'         , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-            'related_tags': {'urlSuffix': 'category/related_tags' , 'params': ['category_id', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by']},
+            'tags'	        : {'urlSuffix': 'tags',         'params' : ['realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
+            'related_tags'	: {'urlSuffix': 'related_tags', 'params' : ['realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
+            'tags/series'	: {'urlSuffix': 'tags/series',  'params' : ['tag_names', 'exclude_tag_names', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order']},
         }
         return(dbParams)
 

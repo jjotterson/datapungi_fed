@@ -14,6 +14,7 @@ import yaml
 import itertools
 from datetime import datetime
 import warnings
+import functools
 from datapungi_fed import generalSettings        #NOTE: projectName 
 #import generalSettings        #NOTE: projectName 
 from datapungi_fed import utils                  #NOTE: projectName  
@@ -23,7 +24,8 @@ class driverCore():
     def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
         self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
         self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
-        self._lastLoad       = {}  #data stored here to assist functions such as clipcode        
+        self._lastLoad       = {}  #data stored here to assist functions such as clipcode    
+        self._queryFactory   = {}  #specific drivers will populate this.    
     
     def _queryApiCleanOutput(self,urlPrefix,dbName,params,warningsList,warningsOn,verbose):
         '''
@@ -58,6 +60,51 @@ class driverCore():
         output = self._formatOutputupdateLoadedAttrib(query,df_output,retrivedData,verbose)
         
         return(output)
+    
+    def _query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
+        '''
+          Args:
+            params
+            file_type              
+            verbose             
+            warningsOn      
+        '''
+        # get requests' query inputs
+        warningsList = ['countPassLimit']  # warn on this events.
+        prefixUrl = self.dbParams[dbName]['urlSuffix']
+        output = self._queryApiCleanOutput(prefixUrl, dbName, params, warningsList, warningsOn, verbose)
+        return(output)
+    
+    def __getitem__(self,dbName):
+        return(self.queryFactory[dbName])
+    
+    def __call__(self,*args,**kwargs):
+        out = self.queryFactory[self.defaultQueryFactoryEntry](*args,**kwargs)
+        return(out)
+    
+    def _getQueryArgs(self,dbName,*args,**kwargs):
+        '''
+          Map args and kwargs to driver args
+        '''
+        #paramaters to be passed to a requests query:
+        paramArray = self.dbParams[dbName]['params']
+        params = dict(zip(paramArray,args))
+        paramsAdd = {key:val for key, val in kwargs.items() if key in paramArray}
+        params.update(paramsAdd)
+        #non query options (eg, verbose)
+        otherArgs = {key:val for key, val in kwargs.items() if not key in paramArray}
+        return({**{'params':params},**otherArgs})
+    
+    def _selectDBQuery(self,queryFun,dbName):
+        '''
+          Fix a generic query to a query to dbName, creates a lambda that, from
+          args/kwargs creates a query of the dbName 
+        '''
+        fun  = functools.partial(queryFun,dbName)
+        lfun = lambda *args,**kwargs: fun(**self._getQueryArgs(dbName,*args,**kwargs))
+        #add quick user tips
+        lfun.options = self.dbParams[dbName]['params']
+        return(lfun)
     
     def _cleanOutput(self,api,query,retrivedData):
         '''
