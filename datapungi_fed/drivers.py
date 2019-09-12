@@ -14,12 +14,12 @@ import yaml
 import itertools
 
 from datetime import datetime
-#from datapungi_fed import generalSettings  # NOTE: projectName
-import generalSettings        #NOTE: projectName
+from . import generalSettings  # NOTE: projectName
+#import generalSettings        #NOTE: projectName
 #from datapungi_fed import utils  # NOTE: projectName
-import utils                  #NOTE: projectName
-#from datapungi_fed.driverCore import driverCore
-from driverCore import driverCore
+#import utils                  #NOTE: projectName
+from .driverCore import driverCore
+#from driverCore import driverCore
 
 class datasetlist(driverCore):
     def _query(self):

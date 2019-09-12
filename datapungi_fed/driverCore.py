@@ -15,10 +15,10 @@ import itertools
 from datetime import datetime
 import warnings
 import functools
-#from datapungi_fed import generalSettings        #NOTE: projectName 
-import generalSettings        #NOTE: projectName 
-#from datapungi_fed import utils                  #NOTE: projectName  
-import utils                  #NOTE: projectName  
+from . import generalSettings        #NOTE: projectName 
+#import generalSettings        #NOTE: projectName 
+from . import utils                  #NOTE: projectName  
+#import utils                  #NOTE: projectName  
 
 class driverCore():
     def __init__(self,baseRequest={},connectionParameters={},userSettings={}):

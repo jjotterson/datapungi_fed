@@ -1,13 +1,11 @@
 import pandas as pd
 import requests
+import sys
 #from datapungi_fed import generalSettings 
-import generalSettings 
-#from datapungi_fed import drivers
-import drivers
+from . import generalSettings 
+from . import drivers
+#import drivers
 
-#TODO: improve delegation (want name of methods - getDatasetlis - to be _get... or be all in a loadedDrivers class etc.  These shouldn't be 
-#      easy for user access)
-# only initialize a driver if it's being called
 class data():
     '''
        the purpose of this class is to provide an environment where the shared data needed to establish a connection is loaded
@@ -28,9 +26,10 @@ class data():
         self.series       = drivers.series(**loadInfo)
         self.sources      = drivers.sources(**loadInfo)
         self.tags         = drivers.tags(**loadInfo)
-        #self.getGetParameterList           = drivers.getGetParameterList(**loadInfo)
-        #TODO: improve loading the drivers 
-    
+             
+    def __call__(self,*args,**kwargs):
+        return(self.series(*args,**kwargs))
+
     def __str__(self):
         return('\nList of drivers and their shortcuts')
 
@@ -55,9 +54,6 @@ class data():
         #return(outhelp)
         return('')
 
-
-
-
 if __name__ == '__main__':
     d = data()
     print(d)
@@ -65,5 +61,6 @@ if __name__ == '__main__':
     print(d.categories(125))   
     print(d.releases())   
     print(d.series('GDP'))
+    print(d('GNP'))
     print(d.sources('1'))   
     print(d.tags(tag_names='monetary+aggregates;weekly'))   
