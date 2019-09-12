@@ -178,7 +178,7 @@ class driverCore():
         #get the entry of the group:
         datasets = list(filter( lambda x: x['group'] == dbGroupName , datasetlist))[0]['datasets']
         removeCases = lambda array: list(filter( lambda x: x not in ['api_key','file_type']  , array ))
-        dbParams = { entry['short name'] : { 'urlSuffix' : entry['database'] , 'params': removeCases(entry['parameters']) } for entry in datasets }
+        dbParams = { entry['short name'] : { 'urlSuffix' : entry['database'] , 'json key': entry['json key'], 'params': removeCases(entry['parameters']) } for entry in datasets }
         
         return(dbParams)
     

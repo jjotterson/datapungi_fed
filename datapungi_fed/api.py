@@ -2,8 +2,8 @@ import pandas as pd
 import requests
 import sys
 #from datapungi_fed import generalSettings 
-from . import generalSettings 
-from . import drivers
+from datapungi_fed import generalSettings 
+from datapungi_fed import drivers
 #import drivers
 
 class data():

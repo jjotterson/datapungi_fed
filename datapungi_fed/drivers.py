@@ -14,11 +14,11 @@ import yaml
 import itertools
 
 from datetime import datetime
-from . import generalSettings  # NOTE: projectName
+from datapungi_fed import generalSettings  # NOTE: projectName
 #import generalSettings        #NOTE: projectName
 #from datapungi_fed import utils  # NOTE: projectName
 #import utils                  #NOTE: projectName
-from .driverCore import driverCore
+from datapungi_fed.driverCore import driverCore
 #from driverCore import driverCore
 
 class datasetlist(driverCore):
@@ -53,10 +53,10 @@ class categories(driverCore):
         self.defaultQueryFactoryEntry = 'category'  #the entry in query factory that __call__ will use.
     
     def _cleanOutput(self, dbName, query, retrivedData):
-        if dbName == "observations":
-            dataKey = 'observations'
+        if 'tags' in dbName:
+            dataKey = 'tags'
         elif dbName == 'series':
-            dataKey = 'series'
+            dataKey = 'seriess'
         else:
             dataKey = 'categories'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
@@ -209,15 +209,29 @@ class tags(driverCore):
         }]
 
 if __name__ == '__main__':
+    import datapungi_fed as dpf
+
+    d = categories()
+    #v = d(125)
+    v = d['category'](125)
+    #v = d['children'](13)
+    #v = d['related'](32073)
+    #v = d['series'](125)
+    #v = d['tags'](125)
+    #v = d['related_tags'](125,tag_names="services;quarterly")
+    
+    
+    
+    print(v)
     # print(_getBaseRequest())
     # dataselist
     #d = getDatasetlist()
-    d = datasetlist()
-    print(d())
+    #d = datasetlist()
+    #print(d())
 
     # tags
-    d = tags()
-    print(d(tag_names='monetary+aggregates;weekly'))
+    #d = tags()
+    #print(d(tag_names='monetary+aggregates;weekly'))
     #v = d.tags('related_tags', tag_names='monetary+aggregates;weekly')
     #print(v)
     #v = d.tags()  
