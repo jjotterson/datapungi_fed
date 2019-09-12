@@ -144,40 +144,16 @@ class series(driverCore):
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
 
-class getSources(driverCore):
-    def sources(self,
-                api='sources',
-                source_id='', search_text='',
-                order_by='', sort_order='',
-                limit='',offset='',
-                realtime_start='',realtime_end='',
-                file_type='json',
-                params={},
-                verbose=False,
-                warningsOn=True
-                ):
-        """
-        ** tags extracts  **  
-        Sample run -
-          {callMethod}()
-
-        Args:
-            api  (str): choose between "sources" (default), "source", or "source/release"
-            file_type (str):  choose between 'json' (default) or 'xml'
-            params (dict):  override all other options with the entries of this dictionary.  (default {})
-            verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
-            warningsOn (bool): print warning if dataset size is larger than the download limit
-        Returns:
-            output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
-        """
-        localVars = locals()  # to get the entries passed in method - the query params
-        # variables that aren't query params.
-        nonQueryArgs = ['self', 'api', 'params', 'verbose', 'warningsOn']
-        warningsList = ['countPassLimit']  # warn on this events.
-
-        output = self._queryApiCleanOutput(
-            '', api, localVars, self.sources, params, nonQueryArgs, warningsList, warningsOn, verbose)
-        return(output)
+class sources(driverCore):
+    def __init__(self,*args, **kwargs):
+        '''
+          Initializes a dictionary of db queries
+        '''
+        super(sources, self).__init__(**kwargs)
+        self.dbGroupName = 'Sources'
+        self.dbParams = self._dbParameters(self.dbGroupName)
+        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
+        self.defaultQueryFactoryEntry = 'source'  #the entry in query factory that __call__ will use.
 
     def _cleanOutput(self, api, query, retrivedData):
         if api == "source/releases":
@@ -200,55 +176,16 @@ class getSources(driverCore):
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
 
-    def _dbParameters(self):
+class tags(driverCore):
+    def __init__(self,*args, **kwargs):
         '''
-          The parameters of each database in the group (will be assigned empty by default)
-        '''    
-        dbParams = {
-            'sources'		    :	{'urlSuffix': 'sources'		 , 'params': [  'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order']},
-            'source'		    :	{'urlSuffix': 'source'		 , 'params': [  'source_id', 'realtime_start', 'realtime_end']},
-            'source/releases'   :	{'urlSuffix': 'source/releases', 'params': [  'source_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order']},
-        }
-        return(dbParams)
-
-class getTags(driverCore):
-    def tags(self,
-             api='tags',
-             tag_names='',tag_group_id='',exclude_tag_names='',
-             realtime_start='',  realtime_end='',
-             search_text='',
-             order_by='', sort_order='',
-             limit='',  offset='',
-             file_type='json',
-             params={},
-             verbose=False,
-             warningsOn=True
-             ):
-        """
-        ** tags extracts  **  
-        Sample run -
-          {callMethod}()
-
-        Args:
-            api  (str): choose between "tags", "related_tags", or "tags/series"
-              tags	        : [realtime_start, realtime_end, tag_names, tag_group_id, search_text, limit, offset, order_by, sort_order]
-              related_tags	: [realtime_start, realtime_end, tag_names, exclude_tag_names, tag_group_id, search_text, limit, offset, order_by, sort_order]
-              tags/series	: [tag_names, exclude_tag_names, realtime_start, realtime_end, limit, offset, order_by, sort_order]
-            file_type (str):  choose between 'json' (default) or 'xml'
-            params (dict):  override all other options with the entries of this dictionary.  (default {})
-            verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
-            warningsOn (bool): print warning if dataset size is larger than the download limit
-        Returns:
-            output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
-        """
-        localVars = locals()  # to get the entries passed in method - the query params
-        # variables that aren't query params.
-        nonQueryArgs = ['self', 'api', 'params', 'verbose', 'warningsOn']
-        warningsList = ['countPassLimit']  # warn on this events.
-
-        output = self._queryApiCleanOutput(
-            '', api, localVars, self.tags, params, nonQueryArgs, warningsList, warningsOn, verbose)
-        return(output)
+          Initializes a dictionary of db queries
+        '''
+        super(tags, self).__init__(**kwargs)
+        self.dbGroupName = 'Tags'
+        self.dbParams = self._dbParameters(self.dbGroupName)
+        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
+        self.defaultQueryFactoryEntry = 'related_tags'  #the entry in query factory that __call__ will use.
 
     def _cleanOutput(self, api, query, retrivedData):
         if api == "tags/series":
@@ -271,17 +208,6 @@ class getTags(driverCore):
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
 
-    def _dbParameters(self):
-        '''
-          The parameters of each database in the group (will be assigned empty by default)
-        '''    
-        dbParams = {
-            'tags'	        : {'urlSuffix': 'tags',         'params' : ['realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-            'related_tags'	: {'urlSuffix': 'related_tags', 'params' : ['realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-            'tags/series'	: {'urlSuffix': 'tags/series',  'params' : ['tag_names', 'exclude_tag_names', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order']},
-        }
-        return(dbParams)
-
 if __name__ == '__main__':
     # print(_getBaseRequest())
     # dataselist
@@ -290,10 +216,11 @@ if __name__ == '__main__':
     print(d())
 
     # tags
-    #d = getTags()
+    d = tags()
+    print(d(tag_names='monetary+aggregates;weekly'))
     #v = d.tags('related_tags', tag_names='monetary+aggregates;weekly')
     #print(v)
-    #v = d.tags()
+    #v = d.tags()  
     #v = d.tags(api='tags/series',tag_names='slovenia;food;oecd')
 
     # categories
@@ -309,14 +236,14 @@ if __name__ == '__main__':
     #print(d())
 
     # sources
-    #d = getSources()
+    #d = sources()
     #v = d.sources()
-    #v = d.sources('source', '1')
+    #print(d('1'))
     #v = d.sources('source/releases','1')
 
     # series
-    d = series()
-    print(d('GDP'))
+    #d = series()
+    #print(d('GDP'))
     #print(v, v.meta)
     # print(v,v.meta)
 
