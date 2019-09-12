@@ -30,9 +30,8 @@ class datasetlist(driverCore):
          Output:
            - pandas table with query function name, database name, short description and query parameters.
         '''
-        dataPath = utils.getResourcePath('/config/datasetlist.yaml')
-        with open(dataPath, 'r') as yf:
-            datasetlist = yaml.safe_load(yf)
+        #get all dictionary of all drivers (in config/datasetlist.yaml)
+        datasetlist = self._dbParameters() 
         datasetlistExp = [[{**entry, **dataset}
                            for dataset in entry.pop('datasets')] for entry in datasetlist]
         datasetlistFlat = list(itertools.chain.from_iterable(
@@ -75,54 +74,23 @@ class categories(driverCore):
             "method": "tags",
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
-       
-    def _dbParameters(self,dbGroupName = ''):
-        '''
-          The parameters of each database in the group (will be assigned empty by default)
-        '''  
-        dataPath = utils.getResourcePath('/config/datasetlist.yaml')
-        with open(dataPath, 'r') as yf:
-            datasetlist = yaml.safe_load(yf)
-
-        
-        #get the entry of the group:
-        datasets = list(filter( lambda x: x['group'] == dbGroupName , datasetlist))[0]['datasets']
-        removeCases = lambda array: list(filter( lambda x: x not in ['api_key','file_type']  , array ))
-        dbParams = { entry['short name'] : { 'urlSuffix' : entry['database'] , 'params': removeCases(entry['parameters']) } for entry in datasets }
-        
-        return(dbParams)
 
 
 class releases(driverCore):
-    def releases(self,          
-                 file_type='json',
-                 params={},
-                 verbose=False,
-                 warningsOn=True
-                 ):
+    def __init__(self,*args, **kwargs):
         '''
-        Get all releases of economic data.
-        Args:
-         params
-         file_type='json',
-         params={},
-         verbose=False,
-         warningsOn=True
+          Initializes a dictionary of db queries
         '''
-        # get requests' query inputs
-        localVars = locals()  # to get the entries passed in method - the query params
-        # variables that aren't query params.
-        nonQueryArgs = ['self', 'api', 'params', 'verbose', 'warningsOn']
-        warningsList = ['countPassLimit']  # warn on this events.
-        # TODO: if api = '' then prefixUrl = 'series'
-        output = self._queryApiCleanOutput(
-            '', api, localVars, self.releases, params, nonQueryArgs, warningsList, warningsOn, verbose)
-        return(output)
-
-    def _cleanOutput(self, api, query, retrivedData):
-        if api == "observations":
+        super(releases, self).__init__(**kwargs)
+        self.dbGroupName = 'Releases'
+        self.dbParams = self._dbParameters(self.dbGroupName)
+        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
+        self.defaultQueryFactoryEntry = 'releases'  #the entry in query factory that __call__ will use.
+    
+    def _cleanOutput(self, dbName, query, retrivedData):
+        if dbName == "observations":
             dataKey = 'observations'
-        elif api == 'series':
+        elif dbName == 'series':
             dataKey = 'series'
         else:
             dataKey = 'releases'
@@ -133,7 +101,7 @@ class releases(driverCore):
         setattr(df_output, 'meta', dict(filter(
             lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
         return(df_output)
-
+    
     def _driverMetadata(self):
         self.metadata = [{
             "displayName": "tags",
@@ -142,67 +110,16 @@ class releases(driverCore):
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
 
-    def _dbParameters(self):
+class series(driverCore):
+    def __init__(self,*args, **kwargs):
         '''
-          The parameters of each database in the group (will be assigned empty by default)
-        '''    
-        dbParams = {
-          'releases'		     : {'urlSuffix' : 'releases'		    ,'params' : ['realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order']},
-          'releases/dates'       : {'urlSuffix' : 'releases/dates'      ,'params' : ['realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order', 'include_release_dates_with_no_data']},
-          'release'		         : {'urlSuffix' : 'release'		        ,'params' : ['release_id', 'realtime_start', 'realtime_end']},
-          'release/dates'	     : {'urlSuffix' : 'release/dates'	    ,'params' : ['release_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'sort_order', 'include_release_dates_with_no_data']},
-          'release/series'       : {'urlSuffix' : 'release/series'      ,'params' : ['release_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'order_by', 'sort_order', 'filter_variable', 'filter_value', 'tag_names', 'exclude_tag_names']},
-          'release/sources'      : {'urlSuffix' : 'release/sources'     ,'params' : ['release_id', 'realtime_start', 'realtime_end']},
-          'release/tags'	     : {'urlSuffix' : 'release/tags'	    ,'params' : ['release_id', 'realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-          'release/related_tags' : {'urlSuffix' : 'release/related_tags','params' : ['release_id', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-          'release/tables'		 : {'urlSuffix' : 'release/tables'		,'params' : ['release_id', 'element_id', 'include_observation_values', 'observation_date']},
-        }
-        return(dbParams)
-
-class getSeries(driverCore):
-    def series(self,
-               series_id='', 
-               frequency='',
-               units='',
-               vintage_dates='',
-               api='observations',
-               series_search_text='',search_text='', search_type='',
-               tag_group_id='',tag_search_text='',
-               observation_start='',observation_end='',
-               aggregation_method='',
-               filter_variable='', filter_value='',
-               tag_names='',  exclude_tag_names='',
-               output_type='', order_by='',sort_order='',
-               realtime_start='',realtime_end='',
-               limit='',offset='',
-               file_type='json',
-               params={},
-               verbose=False,
-               warningsOn=True
-               ):
-        """
-        ** tags extracts  **  
-        Sample run -
-          {callMethod}()
-
-        Args:
-            api  (str):               | Args of the API 
-            file_type (str):  choose between 'json' (default) or 'xml'
-            params (dict):  override all other options with the entries of this dictionary.  (default {})
-            verbose (bool): returns data in a pandas dataframe format (default) or dataframe and all data if True.
-            warningsOn (bool): print warning if dataset size is larger than the download limit
-        Returns:
-            output: either a pandas dataframe or a dictionary (verbose=True) with dataFrame, request, and code              
-        """
-        # get requests' query inputs
-        localVars = locals()  # to get the entries passed in method - the query params
-        # variables that aren't query params.
-        nonQueryArgs = ['self', 'api', 'params', 'verbose', 'warningsOn']
-        warningsList = ['countPassLimit']  # warn on this events.
-        # TODO: if api = '' then prefixUrl = 'series'
-        output = self._queryApiCleanOutput(
-            'series/', api, localVars, self.series, params, nonQueryArgs, warningsList, warningsOn, verbose)
-        return(output)
+          Initializes a dictionary of db queries
+        '''
+        super(series, self).__init__(**kwargs)
+        self.dbGroupName = 'Series'
+        self.dbParams = self._dbParameters(self.dbGroupName)
+        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
+        self.defaultQueryFactoryEntry = 'observations'  #the entry in query factory that __call__ will use.
 
     def _cleanOutput(self, api, query, retrivedData):
         if api == "observations":
@@ -226,24 +143,6 @@ class getSeries(driverCore):
             "method": "tags",
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
-
-    def _dbParameters(self):
-        '''
-          The parameters of each database in the group (will be assigned empty by default)
-        '''    
-        dbParams = {
-              'observations'          :	{ 'urlSuffix': 'observations', 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'sort_order', 'observation_start', 'observation_end', 'units', 'frequency', 'aggregation_method', 'output_type', 'vintage_dates']},
-              '' 	                  :	{ 'urlSuffix': '', 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
-              'categories'	          :	{ 'urlSuffix': 'categories', 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
-              'release'		          :	{ 'urlSuffix': 'release', 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
-              'search'		          :	{ 'urlSuffix': 'search', 'params': [ 'series_id', 'realtime_start', 'realtime_end']},
-              'search/tags'	          :	{ 'urlSuffix': 'search/tags', 'params': [ 'series_search_text', 'realtime_start', 'realtime_end', 'tag_names', 'tag_group_id', 'tag_search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-              'search/related_tags'	  :	{ 'urlSuffix': 'search/related_tags', 'params': [ 'series_search_text', 'realtime_start', 'realtime_end', 'tag_names', 'exclude_tag_names', 'tag_group_id', 'tag_search_text', 'limit', 'offset', 'order_by', 'sort_order']},
-              'tags'		          :	{ 'urlSuffix': 'tags', 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'order_by','sort_order']},
-              'updates'		          :	{ 'urlSuffix': 'updates', 'params': [ 'realtime_start', 'realtime_end', 'limit', 'offset', 'filter_value', 'start_time', 'end_time']},
-              'vintagedates'          :	{ 'urlSuffix': 'vintagedates', 'params': [ 'series_id', 'realtime_start', 'realtime_end', 'limit', 'offset', 'sort_order']},
-        }    
-        return(dbParams)
 
 class getSources(driverCore):
     def sources(self,
@@ -398,16 +297,16 @@ if __name__ == '__main__':
     #v = d.tags(api='tags/series',tag_names='slovenia;food;oecd')
 
     # categories
-    v = categories()
-    print(v(125))
-    print(v['category'](125))
-    print(v['category'].options)
+    #v = categories()
+    #print(v(125))
+    #print(v['category'](125))
+    #print(v['category'].options)
     
 
     # releases
-    #d = getReleases()
+    #d = releases()
     #v = d.releases()
-    #print(v)
+    #print(d())
 
     # sources
     #d = getSources()
@@ -416,8 +315,8 @@ if __name__ == '__main__':
     #v = d.sources('source/releases','1')
 
     # series
-    #d = getSeries()
-    #v = d.series('GDP')
+    d = series()
+    print(d('GDP'))
     #print(v, v.meta)
     # print(v,v.meta)
 

@@ -15,10 +15,10 @@ import itertools
 from datetime import datetime
 import warnings
 import functools
-from datapungi_fed import generalSettings        #NOTE: projectName 
-#import generalSettings        #NOTE: projectName 
-from datapungi_fed import utils                  #NOTE: projectName  
-#import utils                  #NOTE: projectName  
+#from datapungi_fed import generalSettings        #NOTE: projectName 
+import generalSettings        #NOTE: projectName 
+#from datapungi_fed import utils                  #NOTE: projectName  
+import utils                  #NOTE: projectName  
 
 class driverCore():
     def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
@@ -163,6 +163,24 @@ class driverCore():
             output = dict(dataFrame = df_output, request = retrivedData, code = code)  
             self._lastLoad = output
             return(output)
+    
+    def _dbParameters(self,dbGroupName = ''):
+        '''
+          The parameters of each database in the group (will be assigned empty by default)
+        '''  
+        dataPath = utils.getResourcePath('/config/datasetlist.yaml')
+        with open(dataPath, 'r') as yf:
+            datasetlist = yaml.safe_load(yf)
+        
+        if dbGroupName == '':
+            return(datasetlist)
+        
+        #get the entry of the group:
+        datasets = list(filter( lambda x: x['group'] == dbGroupName , datasetlist))[0]['datasets']
+        removeCases = lambda array: list(filter( lambda x: x not in ['api_key','file_type']  , array ))
+        dbParams = { entry['short name'] : { 'urlSuffix' : entry['database'] , 'params': removeCases(entry['parameters']) } for entry in datasets }
+        
+        return(dbParams)
     
     def _warnings(self,warningName,inputs,warningsOn = True):
         if not warningsOn:

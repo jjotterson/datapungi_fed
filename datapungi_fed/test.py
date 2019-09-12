@@ -19,7 +19,15 @@ class F(object):
         #kwargs = {key:locals()[key] for key in inspect.getfullargspec(self.f2).args}
         return()
 
+with open(os.getcwd()+'/datapungi_fed/config/datasetlist.yaml') as yf:
+    d = yaml.safe_load(yf)
+
+
+
 if __name__ == '__main__':
     f = F(1,2)
     print(f['bb'](1))
     print(f(1,2)        )
+
+
+
