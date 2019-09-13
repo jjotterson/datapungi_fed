@@ -53,12 +53,7 @@ class categories(driverCore):
         self.defaultQueryFactoryEntry = 'category'  #the entry in query factory that __call__ will use.
     
     def _cleanOutput(self, dbName, query, retrivedData):
-        if 'tags' in dbName:
-            dataKey = 'tags'
-        elif dbName == 'series':
-            dataKey = 'seriess'
-        else:
-            dataKey = 'categories'
+        dataKey = self.dbParams[dbName]['json key']
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -88,12 +83,13 @@ class releases(driverCore):
         self.defaultQueryFactoryEntry = 'releases'  #the entry in query factory that __call__ will use.
     
     def _cleanOutput(self, dbName, query, retrivedData):
-        if dbName == "observations":
-            dataKey = 'observations'
-        elif dbName == 'series':
-            dataKey = 'series'
-        else:
-            dataKey = 'releases'
+        dataKey = self.dbParams[dbName]['json key']
+        #if dbName == "observations":
+        #    dataKey = 'observations'
+        #elif dbName == 'series':
+        #    dataKey = 'series'
+        #else:
+        #    dataKey = 'releases'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -121,13 +117,14 @@ class series(driverCore):
         self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
         self.defaultQueryFactoryEntry = 'observations'  #the entry in query factory that __call__ will use.
 
-    def _cleanOutput(self, api, query, retrivedData):
-        if api == "observations":
-            dataKey = 'observations'
-        elif api == 'series':
-            dataKey = 'series'
-        else:
-            dataKey = 'seriess'
+    def _cleanOutput(self, dbName, query, retrivedData):
+        dataKey = self.dbParams[dbName]['json key']
+        #if api == "observations":
+        #    dataKey = 'observations'
+        #elif api == 'series':
+        #    dataKey = 'series'
+        #else:
+        #    dataKey = 'seriess'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -155,11 +152,12 @@ class sources(driverCore):
         self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
         self.defaultQueryFactoryEntry = 'source'  #the entry in query factory that __call__ will use.
 
-    def _cleanOutput(self, api, query, retrivedData):
-        if api == "source/releases":
-            dataKey = 'releases'
-        else:
-            dataKey = 'sources'
+    def _cleanOutput(self, dbName, query, retrivedData):
+        dataKey = self.dbParams[dbName]['json key']
+        #if api == "source/releases":
+        #    dataKey = 'releases'
+        #else:
+        #    dataKey = 'sources'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -187,11 +185,12 @@ class tags(driverCore):
         self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
         self.defaultQueryFactoryEntry = 'related_tags'  #the entry in query factory that __call__ will use.
 
-    def _cleanOutput(self, api, query, retrivedData):
-        if api == "tags/series":
-            dataKey = 'seriess'
-        else:
-            dataKey = 'tags'
+    def _cleanOutput(self, dbName, query, retrivedData):
+        dataKey = self.dbParams[dbName]['json key']
+        #if api == "tags/series":
+        #    dataKey = 'seriess'
+        #else:
+        #    dataKey = 'tags'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -209,19 +208,33 @@ class tags(driverCore):
         }]
 
 if __name__ == '__main__':
-    import datapungi_fed as dpf
+    #import datapungi_fed as dpf
 
-    d = categories()
+    #d = categories()
     #v = d(125)
-    v = d['category'](125)
+    #v = d['category'](125)
     #v = d['children'](13)
     #v = d['related'](32073)
     #v = d['series'](125)
     #v = d['tags'](125)
     #v = d['related_tags'](125,tag_names="services;quarterly")
     
-    
-    
+    #d = releases()
+    #v = d()
+
+    #d = sources()
+    #v = d('1')
+    #v = d['source/releases']('1')
+
+    d = series()
+    v = d('GDP')
+    v = d['vintagedates']('GNPCA')
+    #d = tags()
+    #v = d()
+    #d = datasetlist()
+    #v = d()
+
+
     print(v)
     # print(_getBaseRequest())
     # dataselist
