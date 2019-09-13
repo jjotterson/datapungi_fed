@@ -211,31 +211,39 @@ if __name__ == '__main__':
     #import datapungi_fed as dpf
 
     #d = categories()
-    #v = d(125)
-    #v = d['category'](125)
-    #v = d['children'](13)
-    #v = d['related'](32073)
-    #v = d['series'](125)
-    #v = d['tags'](125)
-    #v = d['related_tags'](125,tag_names="services;quarterly")
+    #v = d(125);print(v)
+    #v = d['category'](125);print(v)
+    #v = d['children'](13);print(v)
+    #v = d['related'](32073);print(v)
+    #v = d['series'](125);print(v)
+    #v = d['tags'](125);print(v)
+    #v = d['related_tags'](125,tag_names="services;quarterly");print(v)
     
-    #d = releases()
-    #v = d()
+    d = releases()
+    v = d();print(1,v)
+    v = d['release/dates'](release_id=53); print(2,v)
+    v = d['release'](release_id=53); print(3,v)
+    v = d['release/dates'](release_id=53); print(4,v)
+    v = d['release/series'](release_id=53); print(5,v)
+    v = d['release/sources'](release_id=53); print(6,v)
+    v = d['release/tags'](release_id=53); print(7,v)
+    v = d['release/related_tags'](release_id='86',tag_names='sa;foreign'); print(8,v)
+    v = d['release/tables'](release_id=53); print(9,v)
 
     #d = sources()
     #v = d('1')
     #v = d['source/releases']('1')
 
-    d = series()
-    v = d('GDP')
-    v = d['vintagedates']('GNPCA')
+    #d = series()
+    #v = d('GDP')
+    #v = d['vintagedates']('GNPCA')
     #d = tags()
     #v = d()
     #d = datasetlist()
     #v = d()
 
 
-    print(v)
+    
     # print(_getBaseRequest())
     # dataselist
     #d = getDatasetlist()
