@@ -21,6 +21,8 @@ from datapungi_fed import generalSettings  # NOTE: projectName
 from datapungi_fed.driverCore import driverCore
 #from driverCore import driverCore
 
+#TODO: given a series query, calc if within datalimit.  if not, break down query and do it in pieces.
+
 class datasetlist(driverCore):
     def _query(self):
         '''
@@ -209,7 +211,7 @@ class tags(driverCore):
 
 if __name__ == '__main__':
     #import datapungi_fed as dpf
-
+    pass
     #d = categories()
     #v = d(125);print(v)
     #v = d['category'](125);print(v)
