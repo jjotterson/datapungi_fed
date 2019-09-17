@@ -21,11 +21,17 @@ from . import utils                  #NOTE: projectName
 #import utils                  #NOTE: projectName  
 
 class driverCore():
-    def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
+    def __init__(self,dbGroupName='',defaultQueryFactoryEntry='', baseRequest={},connectionParameters={},userSettings={}):
         self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
         self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode    
         self._queryFactory   = {}  #specific drivers will populate this.    
+        #specific to fed data:
+        if dbGroupName:
+            self.dbGroupName = dbGroupName
+            self.dbParams = self._dbParameters(self.dbGroupName)
+            self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
+            self.defaultQueryFactoryEntry = defaultQueryFactoryEntry  #the entry in query factory that __call__ will use.
     
     def _queryApiCleanOutput(self,urlPrefix,dbName,params,warningsList,warningsOn,verbose):
         '''
