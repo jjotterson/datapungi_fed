@@ -29,7 +29,7 @@ install code: pip install datapungi_fed
 
 ## Sample runs
 
-First, [set the package up](#Setting-up-datapungi_fed) (get an API key from BEA, save it somewhere and let datapungi_fed know its location).  After setting datapungi_fed up, you can run the following:
+First, [set the package up](#Setting-up-datapungi_fed) (get an API key from FED, save it somewhere and let datapungi_fed know its location).  After setting datapungi_fed up, you can run the following:
 
 ```python
 '''
@@ -37,24 +37,23 @@ First, [set the package up](#Setting-up-datapungi_fed) (get an API key from BEA,
 '''
 
 import datapungi_fed as dpf
+#get tiem series data
+dpf('gdp') 
 
+#or access one of the other datasets:
 data = dpf.data() #or data = dpf.data("API Key"), see setting up section   
 
-#Basic package description
-print(data._help)                 #overall info and basic example
-print(data)                       #the list of available databases
-print(data._docDriver('tags'))    #documentation of a specific databases
+data = dpf.data()
 
-#Query a database, return only pandas table:
-data.tags()                                  
-data.tags().meta                            #eg, query date, count of entries and its load limit (1000 max)
-data.tags('related_tags',tag_names='monetary+aggregates;weekly')                                 #eg, query date, count of entries and its load limit (1000 max)
-data.NIPA('T10101',frequency='A',year='X')  
-data.NIPA('T71800',frequency='A')           #if a query does not work, try other frequencies
-
+data.datasetlist()
+data.categories(125)   
+data.releases()
+data.series('GDP')
+data.sources('1')   
+data.tags(tag_names='monetary+aggregates;weekly')
 
 #Query a database, return all information:
-full = data.NIPA('T10101',verbose=true)  
+full = data.series('gnp',verbose=true)  
 full['dataFrame']           #pandas table, as above
 full['request']             #full request run, see section below
 full['code']                #code snippet of a request that reproduces the query. 
@@ -71,8 +70,12 @@ import datapungi_fed as dpf
 
 data = dpf.data()
 
-v = data.NIPA('T10101')
-v.meta
+v = data.series('gdp')
+v._meta
+
+#or
+v = dpf('gdp')
+v._meta
 ```
 
 Also, "meta" is not a pandas official attribute; slight changes to the dataframe (say, merging, or multiplying it by a number) will remove meta.
@@ -91,25 +94,6 @@ data.tags(api='related_tags',tag_names='monetary+aggregates;weekly')
 data.tags('tag/series','slovenia;food;oecd') 
     
 
-#specific driver queries:
-data.NIPA('T10101')
-data.fixedAssets('FAAt101','X')
-data.ITA('BalCurrAcct','Brazil','A','2010')
-#NOTE: for IIPeither use All years of All TypeOfInvestment            
-data.IIP(TypeOfInvestment='DebtSecAssets',Component='All',Frequency='All',Year='All') 
-data.IIP('All','All','All','2010')              
-data.GDPbyIndustry('211','1','A','2018')
-
-#RegionalIncome and RegionalOutput were deprecated - use Regional instead.
-data.getRegionalIncome.RegionalIncome()
-data.getRegionalProduct.RegionalProduct()
-
-data.InputOutput(TableID='56',Year='2010')
-data.InputOutput('All','All')                       
-
-#NOTE: Next driver's PDF and query of getParameterValues say Frequency = Q, but actually it's A
-data.UnderlyingGDPbyIndustry('ALL','ALL','A','ALL') 
-data.IntlServTrade('ALL','ALL','ALL','AllCountries','All')  
 ```
 
 ## Full request result 
@@ -117,7 +101,7 @@ data.IntlServTrade('ALL','ALL','ALL','AllCountries','All')
 When the verbose option is selected, eg:
 
 ```python
-tab = data.NIPA('T10101',verbose = True)
+tab = data.(,verbose = True)
 ```
 
 A query returns a dictionary with three entries: dataFrame, request and code.  
@@ -135,13 +119,13 @@ print(tab['request'])  #200 indicates that the query was successfull
 and the output:
 
 ```python
-tab['request'].json()['BEAAPI']
+tab['request'].json()[]
 ```
 
 a dictionary.  Its entry
 
 ```python
- tab['request'].json()['BEAAPI']['Results']
+ tab['request'].json()[]['Results']
 ```
 
 is again a dictionary this time with the following entries:
@@ -168,7 +152,7 @@ import datapungi_fed as dpf
 
 data = dpf.data("API KEY")
 
-data.NIPA('T10101')
+data.series('gdp')
 ```
 
 #### (Option 2) Save the key in either a json or yaml file and let datapungi_fed know its location:
@@ -205,10 +189,10 @@ userSettings = {
 }   
 
 data = dpf.data(userSettings = userSettings)  
-data.NIPA('T10101')
+data.series('gdp')
 ```
 
-Or, save the path to your BEA API key on the package's user settings (only need to run the utils once, datapungi_fed will remember it in future runs):
+Or, save the path to your FED API key on the package's user settings (only need to run the utils once, datapungi_fed will remember it in future runs):
 
 
 ```python
@@ -217,7 +201,7 @@ import datapungi_fed as dpf
 dpf.utils.setUserSettings('C:/Path/myKeys.yaml') #or .json
 
 data = dpf.data()
-data.NIPA('T10101')
+data.series('gdp')
 ```
 
 #### (Option 3) Save the key in an environment variable
@@ -227,7 +211,7 @@ Finally, you can also save the key as an environment variable (eg, windows shell
 For example, on a command prompt (cmd, powershell etc, or in a virtual environment)
 
 ```
-> set FED=APIKey 
+> setx FED=APIKey 
 ```
 
 Then start python and run:
@@ -235,8 +219,7 @@ Then start python and run:
 ```python
 import datapungi_fed as dpf
 
-data = dpf.data()
-data.NIPA('T10101')
+dpf('gpd')
 ```
 
 Notice: searching for an environment variable named 'FED' is the default option.  If changed to some other option and want to return to the default, run:
