@@ -43,16 +43,13 @@ class datasetlist(driverCore):
     def __call__(self):
         return(self._query())
 
+
 class categories(driverCore):
-    def __init__(self,*args, **kwargs):
+    def __init__(self,dbGroupName = 'Categories',defaultQueryFactoryEntry='category',**kwargs):
         '''
           Initializes a dictionary of db queries
         '''
-        super(categories, self).__init__(**kwargs)
-        self.dbGroupName = 'Categories'
-        self.dbParams = self._dbParameters(self.dbGroupName)
-        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
-        self.defaultQueryFactoryEntry = 'category'  #the entry in query factory that __call__ will use.
+        super(categories, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)    
     
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
@@ -74,24 +71,14 @@ class categories(driverCore):
 
 
 class releases(driverCore):
-    def __init__(self,*args, **kwargs):
+    def __init__(self,dbGroupName = 'Releases',defaultQueryFactoryEntry='releases',**kwargs):
         '''
           Initializes a dictionary of db queries
         '''
-        super(releases, self).__init__(**kwargs)
-        self.dbGroupName = 'Releases'
-        self.dbParams = self._dbParameters(self.dbGroupName)
-        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
-        self.defaultQueryFactoryEntry = 'releases'  #the entry in query factory that __call__ will use.
-    
+        super(releases, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)   
+     
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
-        #if dbName == "observations":
-        #    dataKey = 'observations'
-        #elif dbName == 'series':
-        #    dataKey = 'series'
-        #else:
-        #    dataKey = 'releases'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -107,26 +94,17 @@ class releases(driverCore):
             "method": "tags",
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
+
 
 class series(driverCore):
-    def __init__(self,*args, **kwargs):
+    def __init__(self,dbGroupName = 'Series',defaultQueryFactoryEntry='observations',**kwargs):
         '''
           Initializes a dictionary of db queries
         '''
-        super(series, self).__init__(**kwargs)
-        self.dbGroupName = 'Series'
-        self.dbParams = self._dbParameters(self.dbGroupName)
-        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
-        self.defaultQueryFactoryEntry = 'observations'  #the entry in query factory that __call__ will use.
+        super(series, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
 
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
-        #if api == "observations":
-        #    dataKey = 'observations'
-        #elif api == 'series':
-        #    dataKey = 'series'
-        #else:
-        #    dataKey = 'seriess'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -142,24 +120,17 @@ class series(driverCore):
             "method": "tags",
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
+
 
 class sources(driverCore):
-    def __init__(self,*args, **kwargs):
+    def __init__(self,dbGroupName = 'Sources',defaultQueryFactoryEntry='source',**kwargs):
         '''
           Initializes a dictionary of db queries
         '''
-        super(sources, self).__init__(**kwargs)
-        self.dbGroupName = 'Sources'
-        self.dbParams = self._dbParameters(self.dbGroupName)
-        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
-        self.defaultQueryFactoryEntry = 'source'  #the entry in query factory that __call__ will use.
-
+        super(sources, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
+    
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
-        #if api == "source/releases":
-        #    dataKey = 'releases'
-        #else:
-        #    dataKey = 'sources'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -175,24 +146,16 @@ class sources(driverCore):
             "method": "tags",
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
+
 
 class tags(driverCore):
-    def __init__(self,*args, **kwargs):
+    def __init__(self,dbGroupName = 'Tags',defaultQueryFactoryEntry='related_tags',**kwargs):
         '''
           Initializes a dictionary of db queries
         '''
-        super(tags, self).__init__(**kwargs)
-        self.dbGroupName = 'Tags'
-        self.dbParams = self._dbParameters(self.dbGroupName)
-        self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
-        self.defaultQueryFactoryEntry = 'related_tags'  #the entry in query factory that __call__ will use.
-
+        super(tags, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
-        #if api == "tags/series":
-        #    dataKey = 'seriess'
-        #else:
-        #    dataKey = 'tags'
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -208,6 +171,7 @@ class tags(driverCore):
             "method": "tags",
             "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
         }]
+
 
 if __name__ == '__main__':
     #import datapungi_fed as dpf
