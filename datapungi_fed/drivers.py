@@ -12,6 +12,7 @@ import re
 import inspect
 import yaml
 import itertools
+import warnings
 
 from datetime import datetime
 from datapungi_fed import generalSettings  # NOTE: projectName
@@ -22,6 +23,8 @@ from datapungi_fed.driverCore import driverCore
 #from driverCore import driverCore
 
 #TODO: given a series query, calc if within datalimit.  if not, break down query and do it in pieces.
+#TODO: decorate _query of series to handle: arrays of symbols, tuples of symbols
+#TODO: decorate _query of series to have "start" and "end" and set these to "observations_start..."
 
 class datasetlist(driverCore):
     def _query(self):
@@ -57,7 +60,8 @@ class categories(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        setattr(df_output, 'meta', dict(filter(
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        setattr(df_output, '_meta', dict(filter(
             lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
         return(df_output)
     
@@ -83,7 +87,8 @@ class releases(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        setattr(df_output, 'meta', dict(filter(
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        setattr(df_output, '_meta', dict(filter(
             lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
         return(df_output)
     
@@ -109,7 +114,12 @@ class series(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        setattr(df_output, 'meta', dict(filter(
+        df_output = df_output.drop(['realtime_end','realtime_start'],axis=1)
+        df_output['date'] = pd.to_datetime(df_output['date'])
+        df_output.set_index('date',inplace=True)
+        df_output.value = pd.to_numeric(df_output.value,errors = 'coerse')
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        setattr(df_output, '_meta', dict(filter(
             lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
         return(df_output)
 
@@ -135,7 +145,8 @@ class sources(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        setattr(df_output, 'meta', dict(filter(
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        setattr(df_output, '_meta', dict(filter(
             lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
         return(df_output)
 
@@ -160,7 +171,8 @@ class tags(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        setattr(df_output, 'meta', dict(filter(
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        setattr(df_output, '_meta', dict(filter(
             lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
         return(df_output)
 
@@ -196,8 +208,8 @@ if __name__ == '__main__':
     #v = d['release/related_tags'](release_id='86',tag_names='sa;foreign'); print(8,v)
     #v = d['release/tables'](release_id=53); print(9,v)
 
-    #d = series()
-    #v = d('GDP')
+    d = series()
+    v = d('GDP')
     #v = d['series']('GDP');print(1,v)
     #v = d['categories']('EXJPUS');print(2,v)
     #v = d['observations']('GNP');print(3,v)
