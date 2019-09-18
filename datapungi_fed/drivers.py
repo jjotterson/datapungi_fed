@@ -107,7 +107,7 @@ class series(driverCore):
           Initializes a dictionary of db queries
         '''
         super(series, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-
+    #TODO: put a decorator on the query function:: relable 'start' and 'end' entries of params to to observation_start etc !!!!!
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
