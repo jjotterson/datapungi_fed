@@ -114,10 +114,14 @@ class series(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        df_output = df_output.drop(['realtime_end','realtime_start'],axis=1)
-        df_output['date'] = pd.to_datetime(df_output['date'])
-        df_output.set_index('date',inplace=True)
-        df_output.value = pd.to_numeric(df_output.value,errors = 'coerse')
+        try:
+            df_output = df_output.drop(['realtime_end','realtime_start'],axis=1)
+            df_output['date'] = pd.to_datetime(df_output['date'])
+            df_output.set_index('date',inplace=True)
+            df_output.value = pd.to_numeric(df_output.value,errors = 'coerse')
+            #TODO: relabel value column with symbol
+        except:
+            pass
         warnings.filterwarnings("ignore", category=FutureWarning)
         setattr(df_output, '_meta', dict(filter(
             lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning

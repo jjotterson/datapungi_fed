@@ -6,7 +6,7 @@ import sys
 from datapungi_fed.api import *
 import datapungi_fed.tests as tests
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 class topCall(sys.modules[__name__].__class__):
