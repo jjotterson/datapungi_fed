@@ -1,1 +1,1 @@
-{"ApiKeysPath": "env", "ApiKeyLabel": "FED", "ResultFormat": "json", "TestsOutputPath": "C:/Tests/"}
+{"ApiKeysPath": "env", "ApiKeyLabel": "API_KEY_FED", "ResultFormat": "json", "TestsOutputPath": "C:/Tests/"}

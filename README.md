@@ -11,12 +11,13 @@ install code: pip install datapungi_fed
 
 <h1> datapungi_fed  </h1>
 
-  datapungi_fed is a python package that provides a simplified way to extract data from the API of Federal Reserve (FED).  Overall it:
-  - 
-  -      
-  - can read a saved API key (in json/yaml files or environment variables (default)) to avoid having a copy of it on a script.
+  datapungi_fed is a python package used to extract data from the API of Federal Reserve (FED).  Overall it:
+  - provides a quick access to a FED's time series data and access to all other datasets in the FED's API
+  - provides both a cleaned up output (in pandas format) and a full output of the request result
+  - provides code snippets that can be used to access the FED API independently of datapungi_fed     
+  - can read a saved API key (as an environment variables (default) or from json/yaml files) to avoid having a copy of it on a script
   - can automatically test: 
-      * the connectivity to all BEA datasets, 
+      * the connectivity to all datasets, 
       * the quality of the cleaned up data, and 
       * if the provided requests code snippet returns the correct result. 
 
@@ -29,29 +30,61 @@ install code: pip install datapungi_fed
 
 ## Sample runs
 
-First, [set the package up](#Setting-up-datapungi_fed) (get an API key from FED, save it somewhere and let datapungi_fed know its location).  After setting datapungi_fed up, you can run the following:
+### Quick Setup
+For a quick setup, first [get an API key from the FED](https://research.stlouisfed.org/docs/api/api_key.html), then save it as an environment variable called API_KEY_FED by typing on a termninal:
+
+```
+> setx API_KEY_FED "your api key"  (in windows)
+```
+```
+$ export API_KEY_FED=yourKey  (in mac) 
+```
+
+Close the terminal after saving the variables.  For other setting up options (eg, choosing a key name, saving to yaml/json files, or passing the key by hand see [set the package up](#Setting-up-datapungi_fed)).
+
+### Short runs:
+
+datapungi_fed is design to quickly access the FED time series data.  Given any FRED time series symbol (eg, 'gdp') you can get its data by typing:
 
 ```python
-'''
-  Short datapungi_fed sample run
-'''
-
 import datapungi_fed as dpf
-#get tiem series data
+
 dpf('gdp') 
+```
 
-#or access one of the other datasets:
-data = dpf.data() #or data = dpf.data("API Key"), see setting up section   
+The FRED API has 5 main groups of databases, datapungi_fed includes a 6th group (datasetlist): 
 
-data = dpf.data()
 
-data.datasetlist()
+database group   | description
+----------- | -----------
+dataselist                                             | datapungi_fed database listing all FED API databases and the parameters used to query them
+[categories](https://fred.stlouisfed.org/categories/)  | Catagories of datasets - 8 top categories (eg, National Accounts, Prices) that break down into subgroups 
+[releases](https://fred.stlouisfed.org/releases/)      | Release groups of data - about 300 (eg, Western Hemisphere Regional Economic Outlook, Penn World Table)
+[series  ](https://fred.stlouisfed.org/)               | About 600,000 time series provided by various sources
+[sources ](https://fred.stlouisfed.org/sources/)       | List of data sources - about 90 data providers (eg, IMF and Bank of Mexico)
+[tags    ](https://fred.stlouisfed.org/tags/)          | Tags applied to time series (eg, location, data source, frequency) - about 5,000 tags
+
+
+
+These groups of databases are broken down into sets of databases.  datapungi_fed access all databases, but 
+for each subgroup it defaults to a specific case.  Below is a run sample of each default search.
+
+
+```python
+import datapungi_fed as dpf
+
+data = dpf.data() 
+
+data.datasetlist()       
 data.categories(125)   
 data.releases()
 data.series('GDP')
 data.sources('1')   
 data.tags(tag_names='monetary+aggregates;weekly')
+```
 
+
+```python
 #Query a database, return all information:
 full = data.series('gnp',verbose=true)  
 full['dataFrame']           #pandas table, as above
