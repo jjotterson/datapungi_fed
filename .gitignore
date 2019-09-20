@@ -107,3 +107,4 @@ venv.bak/
 .mypy_cache/
 .idea/workspace.xml
 .vscode/settings.json
+datapungi_fed/test.py

@@ -15,9 +15,9 @@ import itertools
 from datetime import datetime
 import warnings
 import functools
-from . import generalSettings        #NOTE: projectName 
+from datapungi_fed import generalSettings        #NOTE: projectName 
 #import generalSettings        #NOTE: projectName 
-from . import utils                  #NOTE: projectName  
+from datapungi_fed import utils                  #NOTE: projectName  
 #import utils                  #NOTE: projectName  
 
 class driverCore():
@@ -165,7 +165,7 @@ class driverCore():
             self._lastLoad = df_output
             return(df_output)
         else:
-            code = _getCode(query,self._connectionInfo.userSettings,self._cleanCode)
+            code = self._getCode(query,self._connectionInfo.userSettings,self._cleanCode)
             output = dict(dataFrame = df_output, request = retrivedData, code = code)  
             self._lastLoad = output
             return(output)
@@ -262,12 +262,12 @@ with open(apiKeysFile, 'r') as stream:
             url         = " incomplete connection information "
             apiKeyPath = " incomplete connection information "
         
-        baseCode = _getBaseCode([url,apiKeyPath])
+        baseCode = self._getBaseCode([url,apiKeyPath])
         
         #specific code to this driver:
         queryClean = deepcopy(query)
         queryClean['url'] = 'url'
-        queryClean['params']['UserID'] = 'key'
+        queryClean['params']=queryClean['params'].replace(self._baseRequest['params']['api_key'],'{}')+'.format(key)'
         
         
         queryCode = '''
@@ -290,3 +290,6 @@ with open(apiKeysFile, 'r') as stream:
             pyperclip.copy(self._lastLoad['code'])
         except:
             print("Loaded session does not have a code entry.  Re-run with verbose option set to True. eg: v.drivername(...,verbose=True)")
+
+if __name__ == '__main__':
+    case = driverCore(dbGroupName = 'Series',defaultQueryFactoryEntry='observations')

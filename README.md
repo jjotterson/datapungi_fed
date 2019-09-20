@@ -31,20 +31,28 @@ install code: pip install datapungi_fed
 ## Sample runs
 
 ### Quick Setup
-For a quick setup, first [get an API key from the FED](https://research.stlouisfed.org/docs/api/api_key.html), then save it as an environment variable called API_KEY_FED by typing on a termninal:
+For a quick setup (see [set the package up](#Setting-up-datapungi_fed) for more options), first [get an API key from the FED](https://research.stlouisfed.org/docs/api/api_key.html), then save it as an environment variable called API_KEY_FED by, for example, typing on a termninal:
 
-```
-> setx API_KEY_FED "your api key"  (in windows)
-```
-```
-$ export API_KEY_FED=yourKey  (in mac) 
-```
+- In windows:
+   ```
+   > setx API_KEY_FED "your api key"
+   ```
+- In mac:
+  ```
+  $ touch ~/.bash_profile
+  $ open -a TextEdit.app ~/.bash_profile
+  ```
+  add the following text at the end and save it: 
+  
+  ```
+  export API_KEY_FED=yourKey 
+  ```
 
-Close the terminal after saving the variables.  For other setting up options (eg, choosing a key name, saving to yaml/json files, or passing the key by hand see [set the package up](#Setting-up-datapungi_fed)).
+Close the terminal (in mac, restart the computer) after saving the variable.    
 
 ### Short runs:
 
-datapungi_fed is design to quickly access the FED time series data.  Given any FRED time series symbol (eg, 'gdp') you can get its data by typing:
+datapungi_fed is designed to quickly access FED time series data.  Given one of its time series symbol (eg, 'gdp') it can be fetched by typing:
 
 ```python
 import datapungi_fed as dpf
@@ -66,8 +74,10 @@ dataselist                                             | datapungi_fed database 
 
 
 
-These groups of databases are broken down into sets of databases.  datapungi_fed access all databases, but 
-for each subgroup it defaults to a specific case.  Below is a run sample of each default search.
+
+These groups of databases are broken down into sets of databases.  datapungi_fed access all of them, but 
+for each group it defaults to a specific case.  Below is a run sample of each default search.
+
 
 
 ```python

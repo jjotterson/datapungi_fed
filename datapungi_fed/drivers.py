@@ -17,12 +17,11 @@ import warnings
 from datetime import datetime
 from datapungi_fed import generalSettings  # NOTE: projectName
 #import generalSettings        #NOTE: projectName
-#from datapungi_fed import utils  # NOTE: projectName
+from datapungi_fed import utils  # NOTE: projectName
 #import utils                  #NOTE: projectName
 from datapungi_fed.driverCore import driverCore
 #from driverCore import driverCore
 
-#TODO: given a series query, calc if within datalimit.  if not, break down query and do it in pieces.
 #TODO: decorate _query of series to handle: arrays of symbols, tuples of symbols
 #TODO: decorate _query of series to have "start" and "end" and set these to "observations_start..."
 
@@ -60,9 +59,10 @@ class categories(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        warnings.filterwarnings("ignore", category=FutureWarning)
+        warnings.filterwarnings("ignore", category=UserWarning)
         setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
+            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        warnings.filterwarnings("always", category=UserWarning)
         return(df_output)
     
     def _driverMetadata(self):
@@ -87,9 +87,10 @@ class releases(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        warnings.filterwarnings("ignore", category=FutureWarning)
+        warnings.filterwarnings("ignore", category=UserWarning)
         setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
+            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        warnings.filterwarnings("always", category=UserWarning)
         return(df_output)
     
     def _driverMetadata(self):
@@ -122,9 +123,10 @@ class series(driverCore):
             #TODO: relabel value column with symbol
         except:
             pass
-        warnings.filterwarnings("ignore", category=FutureWarning)
+        warnings.filterwarnings("ignore", category=UserWarning)
         setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
+            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        warnings.filterwarnings("always", category=UserWarning)
         return(df_output)
 
     def _driverMetadata(self):
@@ -149,9 +151,10 @@ class sources(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        warnings.filterwarnings("ignore", category=FutureWarning)
+        warnings.filterwarnings("ignore", category=UserWarning)
         setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
+            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        warnings.filterwarnings("always", category=UserWarning)
         return(df_output)
 
     def _driverMetadata(self):
@@ -175,9 +178,10 @@ class tags(driverCore):
             dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
-        warnings.filterwarnings("ignore", category=FutureWarning)
+        warnings.filterwarnings("ignore", category=UserWarning)
         setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  # TODO: silence warning
+            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        warnings.filterwarnings("always", category=UserWarning)
         return(df_output)
 
     def _driverMetadata(self):
@@ -191,9 +195,8 @@ class tags(driverCore):
 
 if __name__ == '__main__':
     #import datapungi_fed as dpf
-    pass
-    #d = categories()
-    #v = d(125);print(v)
+    d = categories()
+    v = d(125);print(v)
     #v = d['category'](125);print(v)
     #v = d['children'](13);print(v)
     #v = d['related'](32073);print(v)
@@ -213,7 +216,8 @@ if __name__ == '__main__':
     #v = d['release/tables'](release_id=53); print(9,v)
 
     d = series()
-    v = d('GDP')
+    v = d['observations']('GDP',verbose=True)
+    print(v)
     #v = d['series']('GDP');print(1,v)
     #v = d['categories']('EXJPUS');print(2,v)
     #v = d['observations']('GNP');print(3,v)

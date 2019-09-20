@@ -54,7 +54,7 @@ class data():
         #return(outhelp)
         return('')
 
-if __name__ == '__main__':
+if __name__ == '__main__':            
     d = data()
     print(d)
     print(d.datasetlist())   
