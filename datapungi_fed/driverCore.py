@@ -15,6 +15,7 @@ import itertools
 from datetime import datetime
 import warnings
 import functools
+from textwrap import dedent
 from datapungi_fed import generalSettings        #NOTE: projectName 
 #import generalSettings        #NOTE: projectName 
 from datapungi_fed import utils                  #NOTE: projectName  
@@ -290,6 +291,110 @@ with open(apiKeysFile, 'r') as stream:
             pyperclip.copy(self._lastLoad['code'])
         except:
             print("Loaded session does not have a code entry.  Re-run with verbose option set to True. eg: v.drivername(...,verbose=True)")
+
+
+class getCode():
+    def getCode(self,query,baseRequest,userSettings={},pandasCode=""):
+        #general code to all drivers:
+        try:
+            url        = query['url']
+            if not userSettings:  #if userSettings is empty dict 
+                    apiKeyPath = generalSettings.getGeneralSettings( ).userSettings['ApiKeysPath']
+            else:
+                apiKeyPath = userSettings['ApiKeysPath']
+        except:
+            url        = " incomplete connection information "
+            apiKeyPath = " incomplete connection information "
+        
+        #load code header - get keys
+        apiCode = self.getApiCode([url,apiKeyPath])
+        
+        #load request's code
+        queryCode = self.getQueryCode(query,baseRequest,pandasCode)
+        
+        return(baseCode + queryCode)
+    
+    def getQueryCode(self,query):
+        queryClean = deepcopy(query,baseRequest,pandasCode)
+        queryClean['url'] = 'url'
+        queryClean['params']=queryClean['params'].replace(baseRequest['params']['api_key'],'{}')+'.format(key)'  #replace explicit api key by the var "key" poiting to it.
+        
+        queryCode = '''\
+            query = {}
+            retrivedData = requests.get(**query)
+            
+            {} #replace json by xml if this is the request format
+        '''
+        
+        queryCode = dedent(queryCode).format(json.dumps(queryClean),pandasCode)
+        queryCode = queryCode.replace('"url": "url"', '"url": url')
+        queryCode = queryCode.replace('"UserID": "key"', '"UserID": key')  #TODO: need to handle generic case, UserID, api_key...        
+        return(queryCode)
+
+    def getApiCode(self): 
+        '''
+          The base format of a code that can be used to replicate a driver using Requests directly.
+        '''
+        userSettings = utils.getUserSettings()
+        pkgConfig    = utils.getPkgConfig()
+        storagePref  = userSettings['ApiKeysPath'].split('.')[-1]
+        
+        passToCode = {'ApiKeyLabel':userSettings["ApiKeyLabel"], "url":pkgConfig['url'], 'ApiKeysPath':userSettings['ApiKeysPath']}
+        
+        code = self.apiCodeOptions(storagePref)
+        code = code.format(**passToCode)   
+        
+        return(code)
+    
+    def apiCodeOptions(self,storagePref):
+        ''''
+          storagePref: yaml, json, env
+        '''
+        if storagePref == 'yaml':
+            code = '''\
+                import requests
+                import yaml 
+                import pandas as pd
+                
+                apiKeysFile = '{ApiKeysPath}'
+                with open(apiKeysFile, 'r') as stream:
+                    apiInfo= yaml.safe_load(stream)
+                    url,key = apiInfo['{ApiKeyLabel}']['url'], apiInfo['{ApiKeyLabel}']['key']
+            '''
+        elif storagePref == 'json':
+            code = '''\
+                import requests
+                import json    
+                import pandas as pd
+                
+                # json file should contain: {"BEA":{"key":"YOUR KEY","url": "{url}" }
+                
+                apiKeysFile = '{ApiKeysPath}'
+                with open(apiKeysFile) as jsonFile:
+                   apiInfo = json.load(jsonFile)
+                   url,key = apiInfo['{ApiKeyLabel}']['url'], apiInfo['{ApiKeyLabel}']['key']    
+            '''
+        else: #default to env
+            code = '''\
+                import requests
+                import os 
+                import pandas as pd
+                
+                url = "{url}"
+                key = os.getenv("{ApiKeyLabel}") 
+            '''
+        return(dedent(code))
+    
+    def clipcode(self):
+        '''
+           Copy the string to the user's clipboard (windows only)
+        '''
+        try:
+            pyperclip.copy(self._lastLoad['code'])
+        except:
+            print("Loaded session does not have a code entry.  Re-run with verbose option set to True. eg: v.drivername(...,verbose=True)")
+
+
 
 if __name__ == '__main__':
     case = driverCore(dbGroupName = 'Series',defaultQueryFactoryEntry='observations')
