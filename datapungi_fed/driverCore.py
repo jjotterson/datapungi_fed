@@ -23,72 +23,36 @@ from datapungi_fed import utils                  #NOTE: projectName
 
 class driverCore():
     def __init__(self,dbGroupName='',defaultQueryFactoryEntry='', baseRequest={},connectionParameters={},userSettings={}):
-        self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
-        self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
-        self._lastLoad       = {}  #data stored here to assist functions such as clipcode    
-        self._getCode        = getCode()
         self._queryFactory   = {}  #specific drivers will populate this.    
+        self._queryClass     = queryDB({},baseRequest,connectionParameters,userSettings)
         #specific to fed data:
         if dbGroupName:
             self.dbGroupName = dbGroupName
             self.dbParams = self._dbParameters(self.dbGroupName)
+            self._queryClass = queryDB(self.dbParams,baseRequest,connectionParameters,userSettings)
             self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
             self.defaultQueryFactoryEntry = defaultQueryFactoryEntry  #the entry in query factory that __call__ will use.
     
-    def _queryApiCleanOutput(self,urlPrefix,dbName,params,warningsList,warningsOn,verbose):
-        '''
-            Core steps of querying and cleaning data.  Notice, specific data cleaning should be 
-            implemented in the specific driver classes
+    def _query(self,*args,**kwargs):
+        return( self._queryClass.query(*args,**kwargs) )
 
-            Args:
-                self - should containg a base request (url)
-                urlPrefix (str) - a string to be appended to request url (eg, https:// ...// -> https//...//urlPrefix?)
-                api (str) - the database being queried (this gets added to the urlPrefix)
-                localVars - the locals() of the main method - basically contain the values of args of the method 
-                method - the function itself (driver) used to get the values of method inputs
-                params (dict) - usually empty, override any query params with the entries of this dictionary
-                nonQueryArgs (list) - the inputs of the method that are not used in a query (eg, verbose)
-                warningsList (list) - the list of events that can lead to warnings
-                warningsOn (bool) - turn on/off driver warnings
-                verbose (bool) - detailed output or short output
-        '''
-        
-        #get data 
-        query = self._getBaseQuery(urlPrefix,dbName,params)
-        retrivedData = requests.get(**query)
-        
-        #clean data
-        df_output = self._cleanOutput(dbName,query,retrivedData)
-        
-        #print warning if there is more data the limit to download
-        for entry in warningsList:
-            self._warnings(entry,retrivedData,warningsOn) 
-        
-        #short or detailed output, update _lastLoad attribute:
-        output = self._formatOutputupdateLoadedAttrib(query,df_output,retrivedData,verbose)
-        
-        return(output)
-    
-    def _query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
-        '''
-          Args:
-            params
-            file_type              
-            verbose             
-            warningsOn      
-        '''
-        # get requests' query inputs
-        warningsList = ['countPassLimit']  # warn on this events.
-        prefixUrl = self.dbParams[dbName]['urlSuffix']
-        output = self._queryApiCleanOutput(prefixUrl, dbName, params, warningsList, warningsOn, verbose)
-        return(output)
-    
     def __getitem__(self,dbName):
         return(self.queryFactory[dbName])
     
     def __call__(self,*args,**kwargs):
         out = self.queryFactory[self.defaultQueryFactoryEntry](*args,**kwargs)
         return(out)
+        
+    def _selectDBQuery(self,queryFun,dbName):
+        '''
+          Fix a generic query to a query to dbName, creates a lambda that, from
+          args/kwargs creates a query of the dbName 
+        '''
+        fun  = functools.partial(queryFun,dbName)
+        lfun = lambda *args,**kwargs: fun(**self._getQueryArgs(dbName,*args,**kwargs))
+        #add quick user tips
+        lfun.options = self.dbParams[dbName]['params']
+        return(lfun)
     
     def _getQueryArgs(self,dbName,*args,**kwargs):
         '''
@@ -102,67 +66,7 @@ class driverCore():
         #non query options (eg, verbose)
         otherArgs = {key:val for key, val in kwargs.items() if not key in paramArray}
         return({**{'params':params},**otherArgs})
-    
-    def _selectDBQuery(self,queryFun,dbName):
-        '''
-          Fix a generic query to a query to dbName, creates a lambda that, from
-          args/kwargs creates a query of the dbName 
-        '''
-        fun  = functools.partial(queryFun,dbName)
-        lfun = lambda *args,**kwargs: fun(**self._getQueryArgs(dbName,*args,**kwargs))
-        #add quick user tips
-        lfun.options = self.dbParams[dbName]['params']
-        return(lfun)
-    
-    def _cleanOutput(self,api,query,retrivedData):
-        '''
-         This is a placeholder - specific drivers should have their own cleaning method
-        '''
-        return(retrivedData)
-    
-    def _getBaseQuery(self,urlPrefix,dbName,params):
-        '''
-          Return a dictionary of request arguments.
-
-          Args:
-              urlPrefix (str) - string appended to the end of the core url (eg, series -> http:...\series? )
-              api (str) - (Specific to datapungi_fed) the name of the database (eg, categories)
-              locals    - local data of othe method - to get the passed method arguments
-              method (func) - the actual method being called (not just a name, will use this to gets its arguments. eg, driver's main method)
-              params (dict) - a dictionary with request paramters used to override all other given parameters 
-              removeMethodArgs (list) - the arguments of the method that are not request parameters (eg, self, params, verbose)
-          Returns:
-              query (dict) - a dictionary with 'url' and 'params' (a string) to be passed to a request
-        '''
-        query = deepcopy(self._baseRequest)
-        
-        #update query url
-        query['url'] = query['url']+urlPrefix   
-        query['params'].update(params)
-        query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
-
-        return(query)
-    
-    def _getBaseRequest(self,baseRequest={},connectionParameters={},userSettings={}):
-        '''
-          Write a base request.  This is the information that gets used in most requests such as getting the userKey
-        '''
-        if baseRequest =={}:
-           connectInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
-           return(connectInfo.baseRequest)
-        else:
-           return(baseRequest)
-    
-    def _formatOutputupdateLoadedAttrib(self,query,df_output,retrivedData,verbose):
-        if verbose == False:
-            self._lastLoad = df_output
-            return(df_output)
-        else:
-            code = self._getCode.getCode(query,self._baseRequest,self._connectionInfo.userSettings,self._cleanCode)
-            output = dict(dataFrame = df_output, request = retrivedData, code = code)  
-            self._lastLoad = output
-            return(output)
-    
+           
     def _dbParameters(self,dbGroupName = ''):
         '''
           The parameters of each database in the group (will be assigned empty by default)
@@ -181,6 +85,111 @@ class driverCore():
         
         return(dbParams)
     
+
+
+
+class queryDB():
+    '''
+      queries a db given its dbName and its dbParameters.
+    '''
+    def __init__(self,dbParams = {},baseRequest={},connectionParameters={},userSettings={}):
+        self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
+        self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
+        self._lastLoad       = {}  #data stored here to assist functions such as clipcode    
+        self._getCode        = getCode()  
+        self.dbParams        = dbParams
+    
+    def query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
+        '''
+          Args:
+            params
+            file_type              
+            verbose             
+            warningsOn      
+        '''
+        # get requests' query inputs
+        warningsList = ['countPassLimit']  # warn on this events.
+        prefixUrl = self.dbParams[dbName]['urlSuffix']
+        output = self.queryApiCleanOutput(prefixUrl, dbName, params, warningsList, warningsOn, verbose)
+        return(output)
+     
+    def queryApiCleanOutput(self,urlPrefix,dbName,params,warningsList,warningsOn,verbose):
+        '''
+            Core steps of querying and cleaning data.  Notice, specific data cleaning should be 
+            implemented in the specific driver classes
+
+            Args:
+                self - should containg a base request (url)
+                urlPrefix (str) - a string to be appended to request url (eg, https:// ...// -> https//...//urlPrefix?)
+                
+                params (dict) - usually empty, override any query params with the entries of this dictionary
+                warningsList (list) - the list of events that can lead to warnings
+                warningsOn (bool) - turn on/off driver warnings
+                verbose (bool) - detailed output or short output
+        '''
+        
+        #get data 
+        query = self.getBaseQuery(urlPrefix,params)
+        retrivedData = requests.get(**query)
+        
+        #clean data
+        df_output = self.cleanOutput(dbName,query,retrivedData)
+        
+        #print warning if there is more data the limit to download
+        for entry in warningsList:
+            self._warnings(entry,retrivedData,warningsOn) 
+        
+        #short or detailed output, update _lastLoad attribute:
+        output = self.formatOutputupdateLoadedAttrib(query,df_output,retrivedData,verbose)
+        
+        return(output)
+    
+    def getBaseQuery(self,urlPrefix,params):
+        '''
+          Return a dictionary of request arguments.
+
+          Args:
+              urlPrefix (str) - string appended to the end of the core url (eg, series -> http:...\series? )
+              dbName (str) - the name of the db being queried
+              params (dict) - a dictionary with request paramters used to override all other given parameters
+          Returns:
+              query (dict) - a dictionary with 'url' and 'params' (a string) to be passed to a request
+        '''
+        query = deepcopy(self._baseRequest)
+        
+        #update query url
+        query['url'] = query['url']+urlPrefix   
+        query['params'].update(params)
+        query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
+        
+        return(query)
+    
+    def formatOutputupdateLoadedAttrib(self,query,df_output,retrivedData,verbose):
+        if verbose == False:
+            self._lastLoad = df_output
+            return(df_output)
+        else:
+            code = self._getCode.getCode(query,self._baseRequest,self._connectionInfo.userSettings,self._cleanCode)
+            output = dict(dataFrame = df_output, request = retrivedData, code = code)  
+            self._lastLoad = output
+            return(output)
+    
+    def cleanOutput(self,dbName,query,retrivedData):
+        '''
+         This is a placeholder - specific drivers should have their own cleaning method
+        '''
+        return(retrivedData)
+    
+    def _getBaseRequest(self,baseRequest={},connectionParameters={},userSettings={}):
+        '''
+          Write a base request.  This is the information that gets used in most requests such as getting the userKey
+        '''
+        if baseRequest =={}:
+           connectInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
+           return(connectInfo.baseRequest)
+        else:
+           return(baseRequest)
+    
     def _warnings(self,warningName,inputs,warningsOn = True):
         if not warningsOn:
             return
@@ -195,7 +204,6 @@ class driverCore():
             if _count > _limit:
               warningText = 'NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(_count,_limit)
               warnings.warn(warningText) 
-
 
 class getCode():
     def getCode(self,query,baseRequest,userSettings={},pandasCode=""):
