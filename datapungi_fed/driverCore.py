@@ -26,6 +26,7 @@ class driverCore():
         self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
         self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode    
+        self._getCode        = getCode()
         self._queryFactory   = {}  #specific drivers will populate this.    
         #specific to fed data:
         if dbGroupName:
@@ -136,16 +137,7 @@ class driverCore():
         query = deepcopy(self._baseRequest)
         
         #update query url
-        query['url'] = query['url']+urlPrefix
-          
-        #update basequery with passed parameters 
-        #allArgs = inspect.getfullargspec(method).args
-        #inputParams = { key:localVars[key] for key in allArgs if key not in removeMethodArgs } #args that are query params
-        #inputParams = dict(filter( lambda entry: entry[1] != '', inputParams.items() )) #filter params.
-        #
-        ##override if passing arg "params" is non-empty:
-        ## - ensure symbols such as + and ; don't get sent to url symbols FED won't read
-        #query['params'].update(inputParams)       
+        query['url'] = query['url']+urlPrefix   
         query['params'].update(params)
         query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
 
@@ -166,7 +158,7 @@ class driverCore():
             self._lastLoad = df_output
             return(df_output)
         else:
-            code = self._getCode(query,self._connectionInfo.userSettings,self._cleanCode)
+            code = self._getCode.getCode(query,self._baseRequest,self._connectionInfo.userSettings,self._cleanCode)
             output = dict(dataFrame = df_output, request = retrivedData, code = code)  
             self._lastLoad = output
             return(output)
@@ -203,94 +195,6 @@ class driverCore():
             if _count > _limit:
               warningText = 'NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(_count,_limit)
               warnings.warn(warningText) 
-        
-    def _getBaseCode(self,codeEntries): 
-        '''
-          The base format of a code that can be used to replicate a driver using Requests directly.
-        '''
-        userSettings = utils.getUserSettings()
-        pkgConfig    = utils.getPkgConfig()
-        storagePref  = userSettings['ApiKeysPath'].split('.')[-1]
-        
-        passToCode = {'ApiKeyLabel':userSettings["ApiKeyLabel"], "url":pkgConfig['url'], 'ApiKeysPath':userSettings['ApiKeysPath']}
-        if storagePref == 'json':
-            code = '''
-import requests
-import json    
-import pandas as pd
-
-# json file should contain: {"BEA":{"key":"YOUR KEY","url": "{url}" }
-
-apiKeysFile = '{ApiKeysPath}'
-with open(apiKeysFile) as jsonFile:
-   apiInfo = json.load(jsonFile)
-   url,key = apiInfo['{ApiKeyLabel}']['url'], apiInfo['{ApiKeyLabel}']['key']    
-            '''.format(**passToCode)
-    
-        if storagePref == 'env':
-            code = '''
-import requests
-import os 
-import pandas as pd
-
-url = "{url}"
-key = os.getenv("{ApiKeyLabel}") 
-            '''.format(**passToCode)
-    
-        if storagePref == 'yaml':
-            code = '''
-import requests
-import yaml 
-import pandas as pd
-
-apiKeysFile = '{ApiKeysPath}'
-with open(apiKeysFile, 'r') as stream:
-    apiInfo= yaml.safe_load(stream)
-    url,key = apiInfo['{ApiKeyLabel}']['url'], apiInfo['{ApiKeyLabel}']['key']
-     '''
-    
-        return(code)
-
-    def _getCode(self,query,userSettings={},pandasCode=""):
-        #general code to all drivers:
-        try:
-            url        = query['url']
-            if not userSettings:  #if userSettings is empty dict 
-                    apiKeyPath = generalSettings.getGeneralSettings( ).userSettings['ApiKeysPath']
-            else:
-                apiKeyPath = userSettings['ApiKeysPath']
-        except:
-            url         = " incomplete connection information "
-            apiKeyPath = " incomplete connection information "
-        
-        baseCode = self._getBaseCode([url,apiKeyPath])
-        
-        #specific code to this driver:
-        queryClean = deepcopy(query)
-        queryClean['url'] = 'url'
-        queryClean['params']=queryClean['params'].replace(self._baseRequest['params']['api_key'],'{}')+'.format(key)'
-        
-        
-        queryCode = '''
-    query = {}
-    retrivedData = requests.get(**query)
-    
-    {} #replace json by xml if this is the request format
-        '''.format(json.dumps(queryClean),pandasCode)
-        
-        queryCode = queryCode.replace('"url": "url"', '"url": url')
-        queryCode = queryCode.replace('"UserID": "key"', '"UserID": key')
-        
-        return(baseCode + queryCode)
-    
-    def _clipcode(self):
-        '''
-           Copy the string to the user's clipboard (windows only)
-        '''
-        try:
-            pyperclip.copy(self._lastLoad['code'])
-        except:
-            print("Loaded session does not have a code entry.  Re-run with verbose option set to True. eg: v.drivername(...,verbose=True)")
 
 
 class getCode():
@@ -307,15 +211,15 @@ class getCode():
             apiKeyPath = " incomplete connection information "
         
         #load code header - get keys
-        apiCode = self.getApiCode([url,apiKeyPath])
+        apiCode = self.getApiCode()
         
         #load request's code
         queryCode = self.getQueryCode(query,baseRequest,pandasCode)
         
-        return(baseCode + queryCode)
+        return(apiCode + queryCode)
     
-    def getQueryCode(self,query):
-        queryClean = deepcopy(query,baseRequest,pandasCode)
+    def getQueryCode(self,query,baseRequest,pandasCode=""):
+        queryClean = deepcopy(query)
         queryClean['url'] = 'url'
         queryClean['params']=queryClean['params'].replace(baseRequest['params']['api_key'],'{}')+'.format(key)'  #replace explicit api key by the var "key" poiting to it.
         
@@ -328,6 +232,7 @@ class getCode():
         
         queryCode = dedent(queryCode).format(json.dumps(queryClean),pandasCode)
         queryCode = queryCode.replace('"url": "url"', '"url": url')
+        queryCode = queryCode.replace('.format(key)"', '".format(key)')
         queryCode = queryCode.replace('"UserID": "key"', '"UserID": key')  #TODO: need to handle generic case, UserID, api_key...        
         return(queryCode)
 
