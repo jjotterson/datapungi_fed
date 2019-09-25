@@ -37,7 +37,7 @@ class driverCore():
         return(out)
            
     def _getDBParameters(self,dbGroupName = ''):
-        '''
+        r'''
           The parameters of each database in the group (if empty returns all groups x databases)
         '''  
         dataPath = utils.getResourcePath('/config/datasetlist.yaml')
@@ -55,7 +55,7 @@ class driverCore():
         return(dbParams)
     
 class queryFactory():
-    '''
+    r'''
       given a groupName of databases, constructs dictionary of functions querying all of its databases
     '''
     def __init__(self,dbGroupName,connDB,dbParams,defaultQueryFactoryEntry):
@@ -73,7 +73,7 @@ class queryFactory():
         return( self.connDB.query(*args,**kwargs) )
     
     def selectDBQuery(self,queryFun,dbName):
-        '''
+        r'''
           Fix a generic query to a query to dbName, creates a lambda that, from
           args/kwargs creates a query of the dbName 
         '''
@@ -84,7 +84,7 @@ class queryFactory():
         return(lfun)
     
     def getQueryArgs(self,dbName,*args,**kwargs):
-        '''
+        r'''
           Map args and kwargs to driver args
         '''
         #paramaters to be passed to a requests query:
@@ -98,7 +98,7 @@ class queryFactory():
 
 
 class connDB():
-    '''
+    r'''
       Functions to connect and query a db given its dbName and dbParams (see yaml in config for these).
     '''
     def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
@@ -118,7 +118,7 @@ class connDB():
         self.dbParams = dbParams
 
     def query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
-        '''
+        r'''
           Args:
             params
             file_type              
@@ -129,10 +129,10 @@ class connDB():
         warningsList = ['countPassLimit']  # warn on this events.
         prefixUrl = self.dbParams[dbName]['urlSuffix']
         output = self.queryApiCleanOutput(prefixUrl, dbName, params, warningsList, warningsOn, verbose)
-        return(output)
+        return(output) 
      
     def queryApiCleanOutput(self,urlPrefix,dbName,params,warningsList,warningsOn,verbose):
-        '''
+        r'''
             Core steps of querying and cleaning data.  Notice, specific data cleaning should be 
             implemented in the specific driver classes
 
@@ -162,7 +162,7 @@ class connDB():
         return(output)
     
     def getBaseQuery(self,urlPrefix,params):
-        '''
+        r'''
           Return a dictionary of request arguments.
 
           Args:
@@ -192,14 +192,14 @@ class connDB():
             return(output)
     
     def cleanOutput(self,dbName,query,retrivedData):
-        '''
+        r'''
          This is a placeholder - specific drivers should have their own cleaning method
          this generates self._cleanCode
         '''
         return(retrivedData)
     
     def getBaseRequest(self,baseRequest={},connectionParameters={},userSettings={}):
-        '''
+        r'''
           Write a base request.  This is the information that gets used in most requests such as getting the userKey
         '''
         if baseRequest =={}:
@@ -226,19 +226,10 @@ class connDB():
 
 class getCode():
     def getCode(self,query,baseRequest,userSettings={},pandasCode=""):
-        #general code to all drivers:
-        try:
-            url        = query['url']
-            if not userSettings:  #if userSettings is empty dict 
-                    apiKeyPath = generalSettings.getGeneralSettings( ).userSettings['ApiKeysPath']
-            else:
-                apiKeyPath = userSettings['ApiKeysPath']
-        except:
-            url        = " incomplete connection information "
-            apiKeyPath = " incomplete connection information "
+
         
         #load code header - get keys
-        apiCode = self.getApiCode()
+        apiCode = self.getApiCode(query,userSettings)
         
         #load request's code
         queryCode = self.getQueryCode(query,baseRequest,pandasCode)
@@ -263,15 +254,27 @@ class getCode():
         queryCode = queryCode.replace('"UserID": "key"', '"UserID": key')  #TODO: need to handle generic case, UserID, api_key...        
         return(queryCode)
 
-    def getApiCode(self): 
-        '''
+    def getApiCode(self,query,userSettings): 
+        r'''
           The base format of a code that can be used to replicate a driver using Requests directly.
         '''
-        userSettings = utils.getUserSettings()
-        pkgConfig    = utils.getPkgConfig()
-        storagePref  = userSettings['ApiKeysPath'].split('.')[-1]
+        try:
+            url = query['url']
+            if userSettings:  
+                apiKeyPath  = userSettings['ApiKeysPath']
+                apiKeyLabel = userSettings["ApiKeyLabel"]
+            else:
+                userSettings = generalSettings.getGeneralSettings( ).userSettings['ApiKeysPath']
+                apiKeyPath   = userSettings['ApiKeysPath']
+                apiKeyLabel  = userSettings["ApiKeyLabel"]
+        except:
+            url        = " incomplete connection information "
+            apiKeyPath = " incomplete connection information "
+        #userSettings = utils.getUserSettings()
+        #pkgConfig    = utils.getPkgConfig()
+        storagePref  = apiKeyPath.split('.')[-1]
         
-        passToCode = {'ApiKeyLabel':userSettings["ApiKeyLabel"], "url":pkgConfig['url'], 'ApiKeysPath':userSettings['ApiKeysPath']}
+        passToCode = {'ApiKeyLabel': apiKeyLabel, "url":url, 'ApiKeysPath':apiKeyPath} #userSettings["ApiKeyLabel"]
         
         code = self.apiCodeOptions(storagePref)
         code = code.format(**passToCode)   
@@ -279,7 +282,7 @@ class getCode():
         return(code)
     
     def apiCodeOptions(self,storagePref):
-        ''''
+        r''''
           storagePref: yaml, json, env
         '''
         if storagePref == 'yaml':
@@ -318,7 +321,7 @@ class getCode():
         return(dedent(code))
     
     def clipcode(self):
-        '''
+        r'''
            Copy the string to the user's clipboard (windows only)
         '''
         try:
