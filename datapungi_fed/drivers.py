@@ -52,17 +52,7 @@ class categories(driverCore):
           Initializes a dictionary of db queries
         '''
         super(categories, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs) 
-        self._connDB.cleanOutput = self._cleanOutput 
-    
-    def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self._dbParams[dbName]['json key']
-        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
-        df_output = pd.DataFrame(retrivedData.json()[dataKey])  # TODO: deal with xml
-        warnings.filterwarnings("ignore", category=UserWarning)
-        setattr(df_output, '_meta', dict(filter(lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
-        warnings.filterwarnings("always", category=UserWarning)
-        return(df_output)
-    
+        
     def _driverMetadata(self):
         self.metadata = [{
             "displayName": "tags",
@@ -78,20 +68,7 @@ class releases(driverCore):
           Initializes a dictionary of db queries
         '''
         super(releases, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)  
-        self._connDB.cleanOutput = self._cleanOutput 
-     
-    def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self._dbParams[dbName]['json key']
-        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
-            dataKey)
-        df_output = pd.DataFrame(
-            retrivedData.json()[dataKey])  # TODO: deal with xml
-        warnings.filterwarnings("ignore", category=UserWarning)
-        setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
-        warnings.filterwarnings("always", category=UserWarning)
-        return(df_output)
-    
+        
     def _driverMetadata(self):
         self.metadata = [{
             "displayName": "tags",
@@ -102,33 +79,13 @@ class releases(driverCore):
 
 
 class series(driverCore):
+    #TODO: put a decorator on the query function:: relable 'start' and 'end' entries of params to to observation_start etc !!!!!
     def __init__(self,dbGroupName = 'Series',defaultQueryFactoryEntry='observations',**kwargs):
         '''
           Initializes a dictionary of db queries
         '''
-        super(series, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-        self._connDB.cleanOutput = self._cleanOutput
+        super(series, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)   
     
-    #TODO: put a decorator on the query function:: relable 'start' and 'end' entries of params to to observation_start etc !!!!!
-    def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self._dbParams[dbName]['json key']
-        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
-        df_output = pd.DataFrame(
-            retrivedData.json()[dataKey])  # TODO: deal with xml
-        try:
-            df_output = df_output.drop(['realtime_end','realtime_start'],axis=1)
-            df_output['date'] = pd.to_datetime(df_output['date'])
-            df_output.set_index('date',inplace=True)
-            df_output.value = pd.to_numeric(df_output.value,errors = 'coerse')
-            #TODO: relabel value column with symbol
-        except:
-            pass
-        warnings.filterwarnings("ignore", category=UserWarning)
-        setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
-        warnings.filterwarnings("always", category=UserWarning)
-        return(df_output)
-
     def _driverMetadata(self):
         self.metadata = [{
             "displayName": "tags",
@@ -144,20 +101,7 @@ class sources(driverCore):
           Initializes a dictionary of db queries
         '''
         super(sources, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-        self._connDB.cleanOutput = self._cleanOutput
-    
-    def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self._dbParams[dbName]['json key']
-        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
-            dataKey)
-        df_output = pd.DataFrame(
-            retrivedData.json()[dataKey])  # TODO: deal with xml
-        warnings.filterwarnings("ignore", category=UserWarning)
-        setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
-        warnings.filterwarnings("always", category=UserWarning)
-        return(df_output)
-
+        
     def _driverMetadata(self):
         self.metadata = [{
             "displayName": "tags",
@@ -173,20 +117,7 @@ class tags(driverCore):
           Initializes a dictionary of db queries
         '''
         super(tags, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-        self._connDB.cleanOutput = self._cleanOutput
-    
-    def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self._dbParams[dbName]['json key']
-        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
-            dataKey)
-        df_output = pd.DataFrame(
-            retrivedData.json()[dataKey])  # TODO: deal with xml
-        warnings.filterwarnings("ignore", category=UserWarning)
-        setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
-        warnings.filterwarnings("always", category=UserWarning)
-        return(df_output)
-
+        
     def _driverMetadata(self):
         self.metadata = [{
             "displayName": "tags",

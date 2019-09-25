@@ -22,18 +22,22 @@ from datapungi_fed import utils                  #NOTE: projectName
 #import utils                  #NOTE: projectName  
 
 class driverCore():
+    r'''
+      Given a dbGroupName and its default db, starts a factory of query functions - ie, a function for 
+      each db in the group.  If dbGroupName is empty, return the list of dbGroups, dbs in the group, and their parameters
+    '''
     def __init__(self,dbGroupName='',defaultQueryFactoryEntry='', baseRequest={},connectionParameters={},userSettings={}):  
         #TODO: place defaultQueryFactoryEntry in yaml
         self.defaultQueryFactoryEntry = defaultQueryFactoryEntry
         self._dbParams    = self._getDBParameters(dbGroupName) 
-        self._connDB      = connDB(baseRequest,connectionParameters,userSettings)
-        self._connFactory = queryFactory(dbGroupName,self._connDB,self._dbParams,defaultQueryFactoryEntry)
+        self._ETDB      = extractTransformDB(baseRequest,connectionParameters,userSettings)
+        self._ETFactory = extractTransformFactory(dbGroupName,self._ETDB,self._dbParams,defaultQueryFactoryEntry)
     
     def __getitem__(self,dbName):
-        return(self._connFactory.queryFactory[dbName])
+        return(self._ETFactory.extractTransformFactory[dbName])
     
     def __call__(self,*args,**kwargs):
-        out = self._connFactory.queryFactory[self.defaultQueryFactoryEntry](*args,**kwargs)
+        out = self._ETFactory.extractTransformFactory[self.defaultQueryFactoryEntry](*args,**kwargs)
         return(out)
            
     def _getDBParameters(self,dbGroupName = ''):
@@ -53,24 +57,25 @@ class driverCore():
         dbParams = { entry['short name'] : { 'urlSuffix' : entry['database'] , 'json key': entry['json key'], 'params': removeCases(entry['parameters']) } for entry in datasets }
         
         return(dbParams)
-    
-class queryFactory():
+
+
+class extractTransformFactory():
     r'''
       given a groupName of databases, constructs dictionary of functions querying all of its databases
     '''
-    def __init__(self,dbGroupName,connDB,dbParams,defaultQueryFactoryEntry):
+    def __init__(self,dbGroupName,ETDB,dbParams,defaultQueryFactoryEntry):
         if dbGroupName:
             self.dbGroupName = dbGroupName
             self.dbParams = dbParams
-            self.connDB = connDB
-            self.connDB(self.dbParams)  #update the connector to the databases with parameters specific to the collection of dbs.
-            self.queryFactory = { dbName : self.selectDBQuery(self.query, dbName)  for dbName in self.dbParams.keys() }
+            self.ETDB = ETDB
+            self.ETDB(self.dbGroupName,self.dbParams)  #update the connector to the databases with parameters specific to the collection of dbs.
+            self.extractTransformFactory = { dbName : self.selectDBQuery(self.query, dbName)  for dbName in self.dbParams.keys() }
             self.defaultQueryFactoryEntry = defaultQueryFactoryEntry  #the entry in query factory that __call__ will use.
         else:
-            self.queryFactory = {}
+            self.extractTransformFactory = {}
     
     def query(self,*args,**kwargs):
-        return( self.connDB.query(*args,**kwargs) )
+        return( self.ETDB.query(*args,**kwargs) )
     
     def selectDBQuery(self,queryFun,dbName):
         r'''
@@ -97,7 +102,7 @@ class queryFactory():
         return({**{'params':params},**otherArgs})
 
 
-class connDB():
+class extractTransformDB():
     r'''
       Functions to connect and query a db given its dbName and dbParams (see yaml in config for these).
     '''
@@ -107,14 +112,16 @@ class connDB():
         '''
         self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
         self._baseRequest    = self.getBaseRequest(baseRequest,connectionParameters,userSettings)  
-        self._lastLoad       = {}  #data stored here to assist functions such as clipcode    
-        self._getCode        = getCode()  
+        self._lastLoad       = {}  #data stored here to assist functions such as clipcode 
+        self._transformData  = transformExtractedData()   
+        self._getCode        = transformIncludeCodeSnippet()  
         self._cleanCode      = ""  #TODO: improvable - this is the code snippet producing a pandas df
     
-    def __call__(self,dbParams):
+    def __call__(self,dbGroup,dbParams):
+        r'''
+         A call to an instance of the class Loads specific parameters of the dbs of dbGroup 
         '''
-         Loads specific parameters of the DB being queried.
-        '''
+        self.dbGroup  = dbGroup
         self.dbParams = dbParams
 
     def query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
@@ -150,7 +157,7 @@ class connDB():
         retrivedData = requests.get(**query)
         
         #clean data
-        df_output = self.cleanOutput(dbName,query,retrivedData)
+        df_output,self._cleanCode = self.cleanOutput(dbName,query,retrivedData)
         
         #print warning if there is more data the limit to download
         for entry in warningsList:
@@ -186,7 +193,7 @@ class connDB():
             self._lastLoad = df_output
             return(df_output)
         else:
-            code = self._getCode.getCode(query,self._baseRequest,self._connectionInfo.userSettings,self._cleanCode)
+            code = self._getCode.transformIncludeCodeSnippet(query,self._baseRequest,self._connectionInfo.userSettings,self._cleanCode)
             output = dict(dataFrame = df_output, request = retrivedData, code = code)  
             self._lastLoad = output
             return(output)
@@ -196,7 +203,8 @@ class connDB():
          This is a placeholder - specific drivers should have their own cleaning method
          this generates self._cleanCode
         '''
-        return(retrivedData)
+        transformedOutput = self._transformData(self.dbGroup,dbName,self.dbParams,query,retrivedData)
+        return(transformedOutput)
     
     def getBaseRequest(self,baseRequest={},connectionParameters={},userSettings={}):
         r'''
@@ -224,10 +232,42 @@ class connDB():
               warnings.warn(warningText) 
 
 
-class getCode():
-    def getCode(self,query,baseRequest,userSettings={},pandasCode=""):
+class transformExtractedData():
+    def __call__(self,dbGroup,dbName,dbParams,query,retrivedData):
+        if dbGroup == 'Series':
+            return( self.cleanOutputSeries(dbName,dbParams,query,retrivedData) )
+        else:
+            return( self.cleanOutput(dbName,dbParams,query,retrivedData) )
+      
+    def cleanOutput(self, dbName, dbParams,query, retrivedData): #categories, releases, sources, tags
+        dataKey = dbParams[dbName]['json key']
+        cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
+        df_output = pd.DataFrame(retrivedData.json()[dataKey])  # TODO: deal with xml
+        warnings.filterwarnings("ignore", category=UserWarning)
+        setattr(df_output, '_meta', dict(filter(lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        warnings.filterwarnings("always", category=UserWarning)
+        return((df_output,cleanCode))
+    
+    def cleanOutputSeries(self, dbName, dbParams,query, retrivedData): #series
+        dataKey = dbParams[dbName]['json key']
+        cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
+        df_output = pd.DataFrame(retrivedData.json()[dataKey])  # TODO: deal with xml
+        try:
+            df_output = df_output.drop(['realtime_end','realtime_start'],axis=1)
+            df_output['date'] = pd.to_datetime(df_output['date'])
+            df_output.set_index('date',inplace=True)
+            df_output.value = pd.to_numeric(df_output.value,errors = 'coerse')
+            #TODO: relabel value column with symbol
+        except:
+            pass
+        warnings.filterwarnings("ignore", category=UserWarning)
+        setattr(df_output, '_meta', dict(filter(lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        warnings.filterwarnings("always", category=UserWarning)
+        return((df_output,cleanCode))
 
-        
+
+class transformIncludeCodeSnippet():
+    def transformIncludeCodeSnippet(self,query,baseRequest,userSettings={},pandasCode=""):      
         #load code header - get keys
         apiCode = self.getApiCode(query,userSettings)
         
