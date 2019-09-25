@@ -86,18 +86,17 @@ class driverCore():
         return(dbParams)
     
 
-
-
 class queryDB():
     '''
       queries a db given its dbName and its dbParameters.
     '''
     def __init__(self,dbParams = {},baseRequest={},connectionParameters={},userSettings={}):
         self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
-        self._baseRequest    = self._getBaseRequest(baseRequest,connectionParameters,userSettings)  
+        self._baseRequest    = self.getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode    
         self._getCode        = getCode()  
         self.dbParams        = dbParams
+        self._cleanCode      = ""  #TODO: improvable - this is the code snippet producing a pandas df
     
     def query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
         '''
@@ -177,10 +176,11 @@ class queryDB():
     def cleanOutput(self,dbName,query,retrivedData):
         '''
          This is a placeholder - specific drivers should have their own cleaning method
+         this generates self._cleanCode
         '''
         return(retrivedData)
     
-    def _getBaseRequest(self,baseRequest={},connectionParameters={},userSettings={}):
+    def getBaseRequest(self,baseRequest={},connectionParameters={},userSettings={}):
         '''
           Write a base request.  This is the information that gets used in most requests such as getting the userKey
         '''

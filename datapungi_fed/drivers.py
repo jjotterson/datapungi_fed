@@ -51,17 +51,15 @@ class categories(driverCore):
         '''
           Initializes a dictionary of db queries
         '''
-        super(categories, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)    
+        super(categories, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs) 
+        self._queryClass.cleanOutput = self._cleanOutput 
     
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
-        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
-            dataKey)
-        df_output = pd.DataFrame(
-            retrivedData.json()[dataKey])  # TODO: deal with xml
+        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
+        df_output = pd.DataFrame(retrivedData.json()[dataKey])  # TODO: deal with xml
         warnings.filterwarnings("ignore", category=UserWarning)
-        setattr(df_output, '_meta', dict(filter(
-            lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        setattr(df_output, '_meta', dict(filter(lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
         warnings.filterwarnings("always", category=UserWarning)
         return(df_output)
     
@@ -79,7 +77,8 @@ class releases(driverCore):
         '''
           Initializes a dictionary of db queries
         '''
-        super(releases, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)   
+        super(releases, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)  
+        self._queryClass.cleanOutput = self._cleanOutput 
      
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
@@ -108,11 +107,12 @@ class series(driverCore):
           Initializes a dictionary of db queries
         '''
         super(series, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
+        self._queryClass.cleanOutput = self._cleanOutput
+    
     #TODO: put a decorator on the query function:: relable 'start' and 'end' entries of params to to observation_start etc !!!!!
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
-        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
-            dataKey)
+        self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
         try:
@@ -144,6 +144,7 @@ class sources(driverCore):
           Initializes a dictionary of db queries
         '''
         super(sources, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
+        self._queryClass.cleanOutput = self._cleanOutput
     
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
@@ -172,6 +173,8 @@ class tags(driverCore):
           Initializes a dictionary of db queries
         '''
         super(tags, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
+        self._queryClass.cleanOutput = self._cleanOutput
+    
     def _cleanOutput(self, dbName, query, retrivedData):
         dataKey = self.dbParams[dbName]['json key']
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
