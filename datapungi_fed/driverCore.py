@@ -22,54 +22,23 @@ from datapungi_fed import utils                  #NOTE: projectName
 #import utils                  #NOTE: projectName  
 
 class driverCore():
-    def __init__(self,dbGroupName='',defaultQueryFactoryEntry='', baseRequest={},connectionParameters={},userSettings={}):
-        self._queryFactory   = {}  #specific drivers will populate this.    
-        self._queryClass     = queryDB({},baseRequest,connectionParameters,userSettings)
-        #specific to fed data:
-        if dbGroupName:
-            self.dbGroupName = dbGroupName
-            self.dbParams = self._dbParameters(self.dbGroupName)
-            self._queryClass = queryDB(self.dbParams,baseRequest,connectionParameters,userSettings)
-            self.queryFactory = { dbName : self._selectDBQuery(self._query, dbName)  for dbName in self.dbParams.keys() }
-            self.defaultQueryFactoryEntry = defaultQueryFactoryEntry  #the entry in query factory that __call__ will use.
+    def __init__(self,dbGroupName='',defaultQueryFactoryEntry='', baseRequest={},connectionParameters={},userSettings={}):  
+        #TODO: place defaultQueryFactoryEntry in yaml
+        self.defaultQueryFactoryEntry = defaultQueryFactoryEntry
+        self._dbParams    = self._getDBParameters(dbGroupName) 
+        self._connDB      = connDB(baseRequest,connectionParameters,userSettings)
+        self._connFactory = queryFactory(dbGroupName,self._connDB,self._dbParams,defaultQueryFactoryEntry)
     
-    def _query(self,*args,**kwargs):
-        return( self._queryClass.query(*args,**kwargs) )
-
     def __getitem__(self,dbName):
-        return(self.queryFactory[dbName])
+        return(self._connFactory.queryFactory[dbName])
     
     def __call__(self,*args,**kwargs):
-        out = self.queryFactory[self.defaultQueryFactoryEntry](*args,**kwargs)
+        out = self._connFactory.queryFactory[self.defaultQueryFactoryEntry](*args,**kwargs)
         return(out)
-        
-    def _selectDBQuery(self,queryFun,dbName):
-        '''
-          Fix a generic query to a query to dbName, creates a lambda that, from
-          args/kwargs creates a query of the dbName 
-        '''
-        fun  = functools.partial(queryFun,dbName)
-        lfun = lambda *args,**kwargs: fun(**self._getQueryArgs(dbName,*args,**kwargs))
-        #add quick user tips
-        lfun.options = self.dbParams[dbName]['params']
-        return(lfun)
-    
-    def _getQueryArgs(self,dbName,*args,**kwargs):
-        '''
-          Map args and kwargs to driver args
-        '''
-        #paramaters to be passed to a requests query:
-        paramArray = self.dbParams[dbName]['params']
-        params = dict(zip(paramArray,args))
-        paramsAdd = {key:val for key, val in kwargs.items() if key in paramArray}
-        params.update(paramsAdd)
-        #non query options (eg, verbose)
-        otherArgs = {key:val for key, val in kwargs.items() if not key in paramArray}
-        return({**{'params':params},**otherArgs})
            
-    def _dbParameters(self,dbGroupName = ''):
+    def _getDBParameters(self,dbGroupName = ''):
         '''
-          The parameters of each database in the group (will be assigned empty by default)
+          The parameters of each database in the group (if empty returns all groups x databases)
         '''  
         dataPath = utils.getResourcePath('/config/datasetlist.yaml')
         with open(dataPath, 'r') as yf:
@@ -85,19 +54,69 @@ class driverCore():
         
         return(dbParams)
     
+class queryFactory():
+    '''
+      given a groupName of databases, constructs dictionary of functions querying all of its databases
+    '''
+    def __init__(self,dbGroupName,connDB,dbParams,defaultQueryFactoryEntry):
+        if dbGroupName:
+            self.dbGroupName = dbGroupName
+            self.dbParams = dbParams
+            self.connDB = connDB
+            self.connDB(self.dbParams)  #update the connector to the databases with parameters specific to the collection of dbs.
+            self.queryFactory = { dbName : self.selectDBQuery(self.query, dbName)  for dbName in self.dbParams.keys() }
+            self.defaultQueryFactoryEntry = defaultQueryFactoryEntry  #the entry in query factory that __call__ will use.
+        else:
+            self.queryFactory = {}
+    
+    def query(self,*args,**kwargs):
+        return( self.connDB.query(*args,**kwargs) )
+    
+    def selectDBQuery(self,queryFun,dbName):
+        '''
+          Fix a generic query to a query to dbName, creates a lambda that, from
+          args/kwargs creates a query of the dbName 
+        '''
+        fun  = functools.partial(queryFun,dbName)
+        lfun = lambda *args,**kwargs: fun(**self.getQueryArgs(dbName,*args,**kwargs))
+        #add quick user tips
+        lfun.options = self.dbParams[dbName]['params']
+        return(lfun)
+    
+    def getQueryArgs(self,dbName,*args,**kwargs):
+        '''
+          Map args and kwargs to driver args
+        '''
+        #paramaters to be passed to a requests query:
+        paramArray = self.dbParams[dbName]['params']
+        params = dict(zip(paramArray,args))
+        paramsAdd = {key:val for key, val in kwargs.items() if key in paramArray}
+        params.update(paramsAdd)
+        #non query options (eg, verbose)
+        otherArgs = {key:val for key, val in kwargs.items() if not key in paramArray}
+        return({**{'params':params},**otherArgs})
 
-class queryDB():
+
+class connDB():
     '''
-      queries a db given its dbName and its dbParameters.
+      Functions to connect and query a db given its dbName and dbParams (see yaml in config for these).
     '''
-    def __init__(self,dbParams = {},baseRequest={},connectionParameters={},userSettings={}):
+    def __init__(self,baseRequest={},connectionParameters={},userSettings={}):
+        '''
+          loads generic parametes (ie api key, location fo data.)
+        '''
         self._connectionInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings )
         self._baseRequest    = self.getBaseRequest(baseRequest,connectionParameters,userSettings)  
         self._lastLoad       = {}  #data stored here to assist functions such as clipcode    
         self._getCode        = getCode()  
-        self.dbParams        = dbParams
         self._cleanCode      = ""  #TODO: improvable - this is the code snippet producing a pandas df
     
+    def __call__(self,dbParams):
+        '''
+         Loads specific parameters of the DB being queried.
+        '''
+        self.dbParams = dbParams
+
     def query(self,dbName,params={},file_type='json',verbose=False,warningsOn=True):
         '''
           Args:
@@ -126,7 +145,6 @@ class queryDB():
                 warningsOn (bool) - turn on/off driver warnings
                 verbose (bool) - detailed output or short output
         '''
-        
         #get data 
         query = self.getBaseQuery(urlPrefix,params)
         retrivedData = requests.get(**query)
@@ -204,6 +222,7 @@ class queryDB():
             if _count > _limit:
               warningText = 'NOTICE: dataset exceeds download limit! Check - count ({}) and limit ({})'.format(_count,_limit)
               warnings.warn(warningText) 
+
 
 class getCode():
     def getCode(self,query,baseRequest,userSettings={},pandasCode=""):

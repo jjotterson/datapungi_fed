@@ -35,7 +35,7 @@ class datasetlist(driverCore):
            - pandas table with query function name, database name, short description and query parameters.
         '''
         #get all dictionary of all drivers (in config/datasetlist.yaml)
-        datasetlist = self._dbParameters() 
+        datasetlist = self._dbParams
         datasetlistExp = [[{**entry, **dataset}
                            for dataset in entry.pop('datasets')] for entry in datasetlist]
         datasetlistFlat = list(itertools.chain.from_iterable(
@@ -52,10 +52,10 @@ class categories(driverCore):
           Initializes a dictionary of db queries
         '''
         super(categories, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs) 
-        self._queryClass.cleanOutput = self._cleanOutput 
+        self._connDB.cleanOutput = self._cleanOutput 
     
     def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self.dbParams[dbName]['json key']
+        dataKey = self._dbParams[dbName]['json key']
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
         df_output = pd.DataFrame(retrivedData.json()[dataKey])  # TODO: deal with xml
         warnings.filterwarnings("ignore", category=UserWarning)
@@ -78,10 +78,10 @@ class releases(driverCore):
           Initializes a dictionary of db queries
         '''
         super(releases, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)  
-        self._queryClass.cleanOutput = self._cleanOutput 
+        self._connDB.cleanOutput = self._cleanOutput 
      
     def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self.dbParams[dbName]['json key']
+        dataKey = self._dbParams[dbName]['json key']
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -107,11 +107,11 @@ class series(driverCore):
           Initializes a dictionary of db queries
         '''
         super(series, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-        self._queryClass.cleanOutput = self._cleanOutput
+        self._connDB.cleanOutput = self._cleanOutput
     
     #TODO: put a decorator on the query function:: relable 'start' and 'end' entries of params to to observation_start etc !!!!!
     def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self.dbParams[dbName]['json key']
+        dataKey = self._dbParams[dbName]['json key']
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
         df_output = pd.DataFrame(
             retrivedData.json()[dataKey])  # TODO: deal with xml
@@ -144,10 +144,10 @@ class sources(driverCore):
           Initializes a dictionary of db queries
         '''
         super(sources, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-        self._queryClass.cleanOutput = self._cleanOutput
+        self._connDB.cleanOutput = self._cleanOutput
     
     def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self.dbParams[dbName]['json key']
+        dataKey = self._dbParams[dbName]['json key']
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -173,10 +173,10 @@ class tags(driverCore):
           Initializes a dictionary of db queries
         '''
         super(tags, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-        self._queryClass.cleanOutput = self._cleanOutput
+        self._connDB.cleanOutput = self._cleanOutput
     
     def _cleanOutput(self, dbName, query, retrivedData):
-        dataKey = self.dbParams[dbName]['json key']
+        dataKey = self._dbParams[dbName]['json key']
         self._cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(
             dataKey)
         df_output = pd.DataFrame(
@@ -232,14 +232,14 @@ if __name__ == '__main__':
     #v = d['updates']();print(9,v)
     #v = d['vintagedates']('GNPCA');print(10,v)
 
-    #d = tags()
-    #v = d('monetary+aggregates;weekly');print(1,v)
-    #v = d['tags']();print(2,v)
-    #v = d['related_tags'](tag_names='monetary+aggregates;weekly');print(3,v)
-    #v = d['tags/series'](tag_names='slovenia;food;oecd');print(4,v)
+    d = tags()
+    v = d('monetary+aggregates;weekly');print(1,v)
+    v = d['tags']();print(2,v)
+    v = d['related_tags'](tag_names='monetary+aggregates;weekly');print(3,v)
+    v = d['tags/series'](tag_names='slovenia;food;oecd');print(4,v)
     
-    #d = datasetlist()
-    #v = d(); print(v)
+    d = datasetlist()
+    v = d(); print(v)
 
     #d = sources()
     #v = d('1')
