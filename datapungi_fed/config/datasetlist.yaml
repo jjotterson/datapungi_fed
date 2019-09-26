@@ -1,5 +1,6 @@
 - api: FRED
   group: Categories
+  default query: category
   datasets:
      - { short name:  category,     database: category,              json key: categories, description: Get a category., parameters: [api_key,file_type,category_id] }
      - { short name:  children,     database: category/children,     json key: categories, description: Get the child categories for a specified parent category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end]}
@@ -9,6 +10,7 @@
      - { short name:  related_tags, database: category/related_tags, json key: tags, description: Get the related tags for a category., parameters: [api_key,file_type,category_id,realtime_start,realtime_end,tag_names,exclude_tag_names,tag_group_id,search_text,limit,offset,order_by]}
 - api: FRED
   group: Releases
+  default query: releases
   datasets:   
       - { short name: releases,             database: releases,              json key: releases, description: Get all releases of economic data., parameters: [api_key,file_type,realtime_start,realtime_end,limit,offset,order_by,sort_order]}
       - { short name: releases/dates,       database: releases/dates,        json key: release_dates, description: Get release dates for all releases of economic data., parameters: [api_key,file_type,realtime_start,realtime_end,limit,offset,order_by,sort_order,include_release_dates_with_no_data]}
@@ -21,6 +23,7 @@
       - { short name: release/tables,       database: release/tables,        json key: elements, description: Get the release tables for a given release., parameters: [api_key,file_type,release_id,element_id,include_observation_values,observation_date]}
 - api: FRED
   group: Series
+  default query: observations
   datasets:
     - { short name: series,              database: series,                     json key: seriess, description: Get an economic data series., parameters: [api_key,file_type,series_id,realtime_start,realtime_end]}
     - { short name: categories,          database: series/categories,          json key: categories, description: Get the categories for an economic data series., parameters: [api_key,file_type,series_id,realtime_start,realtime_end]}
@@ -34,12 +37,14 @@
     - { short name: vintagedates,        database: series/vintagedates,        json key: vintage_dates, description: Get the dates in history when a series' data values were revised or new data values were released., parameters: [api_key,file_type,series_id,realtime_start,realtime_end,limit,offset,sort_order]}
 - api: FRED
   group: Sources
+  default query: source
   datasets:
     - { short name: sources,          database: sources,         json key: sources, description: Get all sources of economic data., parameters: [api_key,file_type,realtime_start,realtime_end,limit,offset,order_by,sort_order]}
     - { short name: source,           database: source,          json key: sources, description: Get a source of economic data., parameters: [api_key,file_type,source_id,realtime_start,realtime_end]}
     - { short name: source/releases,  database: source/releases, json key: releases, description: Get the releases for a source., parameters: [api_key,file_type,source_id,realtime_start,realtime_end,limit,offset,order_by,sort_order]}
 - api: FRED
   group: Tags
+  default query: related_tags
   datasets:
     - { short name: tags,         database: tags,         json key: tags, description: "Get all tags, search for tags, or get tags by name.", parameters: [api_key,file_type,realtime_start,realtime_end,tag_names,tag_group_id,search_text,limit,offset,order_by,sort_order]}
     - { short name: related_tags, database: related_tags, json key: tags, description: "Get the related tags for one or more tags.", parameters: [api_key,file_type,tag_names,exclude_tag_names,tag_group_id,search_text,realtime_start,realtime_end,limit,offset,order_by,sort_order]}

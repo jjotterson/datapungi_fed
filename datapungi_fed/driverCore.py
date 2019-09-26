@@ -26,12 +26,12 @@ class driverCore():
       Given a dbGroupName and its default db, starts a factory of query functions - ie, a function for 
       each db in the group.  If dbGroupName is empty, return the list of dbGroups, dbs in the group, and their parameters
     '''
-    def __init__(self,dbGroupName='',defaultQueryFactoryEntry='', baseRequest={},connectionParameters={},userSettings={}):  
+    def __init__(self,dbGroupName='', baseRequest={},connectionParameters={},userSettings={}):  
         #TODO: place defaultQueryFactoryEntry in yaml
-        self.defaultQueryFactoryEntry = defaultQueryFactoryEntry
-        self._dbParams    = self._getDBParameters(dbGroupName) 
-        self._ETDB      = extractTransformDB(baseRequest,connectionParameters,userSettings)
-        self._ETFactory = extractTransformFactory(dbGroupName,self._ETDB,self._dbParams,defaultQueryFactoryEntry)
+        self._dbParams, self.defaultQueryFactoryEntry  = self._getDBParameters(dbGroupName) 
+        self._ETDB      = extractTransformDB(baseRequest,connectionParameters,userSettings) #a generic query is started
+        self._ETFactory = extractTransformFactory(dbGroupName,self._ETDB,self._dbParams,self.defaultQueryFactoryEntry)
+        self._driverMeta = driverMetadata()(dbGroupName)
     
     def __getitem__(self,dbName):
         return(self._ETFactory.extractTransformFactory[dbName])
@@ -49,14 +49,17 @@ class driverCore():
             datasetlist = yaml.safe_load(yf)
         
         if dbGroupName == '':
-            return(datasetlist)
+            defaultDB = {}
+            return((datasetlist,defaultDB))
         
         #get the entry of the group:
-        datasets = list(filter( lambda x: x['group'] == dbGroupName , datasetlist))[0]['datasets']
+        selected = list(filter( lambda x: x['group'] == dbGroupName , datasetlist))[0]
+        defaultDB = selected.get('default query','')
+        datasets = selected.get('datasets',{})
         removeCases = lambda array: list(filter( lambda x: x not in ['api_key','file_type']  , array ))
         dbParams = { entry['short name'] : { 'urlSuffix' : entry['database'] , 'json key': entry['json key'], 'params': removeCases(entry['parameters']) } for entry in datasets }
         
-        return(dbParams)
+        return((dbParams,defaultDB))
 
 
 class extractTransformFactory():
@@ -368,6 +371,54 @@ class transformIncludeCodeSnippet():
             pyperclip.copy(self._lastLoad['code'])
         except:
             print("Loaded session does not have a code entry.  Re-run with verbose option set to True. eg: v.drivername(...,verbose=True)")
+
+
+class driverMetadata():
+    def __call__(self,dbGroup):
+        if dbGroup == 'Categories':
+            self.metadata = [{
+                "displayName": "tags",
+                # Name of driver main function - run with getattr(data,'datasetlist')()
+                "method": "tags",
+                "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
+            }]
+        elif dbGroup == 'Releases':
+            self.metadata = [{
+                "displayName": "tags",
+                # Name of driver main function - run with getattr(data,'datasetlist')()
+                "method": "tags",
+                "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
+            }]
+        elif dbGroup == 'Series':
+            self.metadata = [{
+                "displayName": "tags",
+                # Name of driver main function - run with getattr(data,'datasetlist')()
+                "method": "tags",
+                "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
+            }]
+        elif dbGroup == 'Sources':
+            self.metadata = [{
+                "displayName": "tags",
+                # Name of driver main function - run with getattr(data,'datasetlist')()
+                "method": "tags",
+                "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
+            }]
+        elif dbGroup == 'Tags':
+            self.metadata = [{
+                "displayName": "tags",
+                # Name of driver main function - run with getattr(data,'datasetlist')()
+                "method": "tags",
+                "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
+            }]
+        else:
+            self.metadata = [{
+                "displayName": "datasetlist",
+                # Name of driver main function - run with getattr(data,'datasetlist')()
+                "method": "datasetlist",
+                "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
+            }]
+        
+        return(self.metadata)
 
 
 

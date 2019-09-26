@@ -54,9 +54,9 @@ def test_tags(cmdopt):
 
 
 if __name__ == '__main__':
-    #test_IIP()
-    #test_datasetlist()
-    #test_getParameterList()
-    #test_getParameterValues()
-    #test_NIPA()
-    #test_fixedAssets()
+    test_tags()
+    #test_
+    #test_
+    #test_
+    #test_
+    #test_

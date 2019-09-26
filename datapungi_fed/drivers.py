@@ -1,5 +1,5 @@
 '''
-   Construct drivers connecting to databases. 
+   Construct driver connecting to databases that are not part of the driverCore.py 
 '''
 
 import pandas as pd
@@ -25,6 +25,8 @@ from datapungi_fed.driverCore import driverCore
 #TODO: decorate _query of series to handle: arrays of symbols, tuples of symbols
 #TODO: decorate _query of series to have "start" and "end" and set these to "observations_start..."
 
+
+
 class datasetlist(driverCore):
     def _query(self):
         '''
@@ -44,88 +46,7 @@ class datasetlist(driverCore):
         return(df_output)
     def __call__(self):
         return(self._query())
-
-
-class categories(driverCore):
-    def __init__(self,dbGroupName = 'Categories',defaultQueryFactoryEntry='category',**kwargs):
-        '''
-          Initializes a dictionary of db queries
-        '''
-        super(categories, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs) 
-        
-    def _driverMetadata(self):
-        self.metadata = [{
-            "displayName": "tags",
-            # Name of driver main function - run with getattr(data,'datasetlist')()
-            "method": "tags",
-            "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
-        }]
-
-
-class releases(driverCore):
-    def __init__(self,dbGroupName = 'Releases',defaultQueryFactoryEntry='releases',**kwargs):
-        '''
-          Initializes a dictionary of db queries
-        '''
-        super(releases, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)  
-        
-    def _driverMetadata(self):
-        self.metadata = [{
-            "displayName": "tags",
-            # Name of driver main function - run with getattr(data,'datasetlist')()
-            "method": "tags",
-            "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
-        }]
-
-
-class series(driverCore):
-    #TODO: put a decorator on the query function:: relable 'start' and 'end' entries of params to to observation_start etc !!!!!
-    def __init__(self,dbGroupName = 'Series',defaultQueryFactoryEntry='observations',**kwargs):
-        '''
-          Initializes a dictionary of db queries
-        '''
-        super(series, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)   
     
-    def _driverMetadata(self):
-        self.metadata = [{
-            "displayName": "tags",
-            # Name of driver main function - run with getattr(data,'datasetlist')()
-            "method": "tags",
-            "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
-        }]
-
-
-class sources(driverCore):
-    def __init__(self,dbGroupName = 'Sources',defaultQueryFactoryEntry='source',**kwargs):
-        '''
-          Initializes a dictionary of db queries
-        '''
-        super(sources, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-        
-    def _driverMetadata(self):
-        self.metadata = [{
-            "displayName": "tags",
-            # Name of driver main function - run with getattr(data,'datasetlist')()
-            "method": "tags",
-            "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
-        }]
-
-
-class tags(driverCore):
-    def __init__(self,dbGroupName = 'Tags',defaultQueryFactoryEntry='related_tags',**kwargs):
-        '''
-          Initializes a dictionary of db queries
-        '''
-        super(tags, self).__init__(dbGroupName,defaultQueryFactoryEntry,**kwargs)
-        
-    def _driverMetadata(self):
-        self.metadata = [{
-            "displayName": "tags",
-            # Name of driver main function - run with getattr(data,'datasetlist')()
-            "method": "tags",
-            "params": {'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names': '', 'exclude_tag_names': '', 'tag_group_id': '', 'search_text': '', 'limit': '', 'offset': '', 'order_by': '', 'sort_order': ''},
-        }]
-
 
 if __name__ == '__main__':
     #import datapungi_fed as dpf
@@ -150,6 +71,7 @@ if __name__ == '__main__':
     #v = d['release/tables'](release_id=53); print(9,v)
 
     d = series()
+    print(d._driverMeta)
     v = d['observations']('GDP',verbose=True)
     print(v)
     #v = d['series']('GDP');print(1,v)

@@ -47,10 +47,8 @@ def test_tags():
 
 
 if __name__ == '__main__':
-    #test_answer('')
-    #test_IIP()
-    #test_datasetlist()
-    #test_getParameterList()
-    #test_getParameterValues()
-    #test_NIPA()
-    #test_fixedAssets()
+    test_startDriver()     
+    test_categories()     
+    test_tags()     
+    #test_s()     
+    #test_()     

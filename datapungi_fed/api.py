@@ -1,10 +1,12 @@
 import pandas as pd
 import requests
 import sys
-#from datapungi_fed import generalSettings 
 from datapungi_fed import generalSettings 
 from datapungi_fed import drivers
+from datapungi_fed.driverCore import driverCore
+#from driverCore import driverCore
 #import drivers
+
 
 class data():
     '''
@@ -21,11 +23,11 @@ class data():
         #load drivers:
         loadInfo = {'baseRequest' : self.__connectInfo.baseRequest, 'connectionParameters' : self.__connectInfo.connectionParameters}
         self.datasetlist  = drivers.datasetlist(**loadInfo)
-        self.categories   = drivers.categories(**loadInfo)
-        self.releases     = drivers.releases(**loadInfo)
-        self.series       = drivers.series(**loadInfo)
-        self.sources      = drivers.sources(**loadInfo)
-        self.tags         = drivers.tags(**loadInfo)
+        self.categories   = driverCore('Categories',**loadInfo)
+        self.releases     = driverCore('Releases',**loadInfo)
+        self.series       = driverCore('Series',**loadInfo)
+        self.sources      = driverCore('Sources',**loadInfo)
+        self.tags         = driverCore('Tags',**loadInfo)
              
     def __call__(self,*args,**kwargs):
         return(self.series(*args,**kwargs))
