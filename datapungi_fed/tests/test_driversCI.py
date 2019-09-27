@@ -20,7 +20,6 @@ def executeCode(stringIn):
 
 # content of test_sample.py
 def test_startDriver(cmdopt):
-    global data
     if not cmdopt == "":
         connectionParameters = {"key": cmdopt, "url": ""}
     else:
@@ -29,22 +28,23 @@ def test_startDriver(cmdopt):
     assert data
     return(data)
 
-def test_categories():
-    driver = data.categories(**{},verbose=True)
-    #execCode = executeCode(driver['code']) 
+# start  the driver - used by all tests
+def startDriver(cmdopt):
+    if not cmdopt == "":
+        connectionParameters = {"key": cmdopt, "url": ""}
+    else:
+        connectionParameters = {}
+    data = dp.data(connectionParameters)
+    return(data)  
+
+def test_categories(cmdopt):
+    data = startDriver(cmdopt)
+    driver = data.categories(125,verbose=True)
+    execCode = executeCode(driver['code']) 
     assert driver['request'].status_code == 200  #test if connection was stablished
     assert not driver['dataFrame'].empty         #cleaned up output is not empty
-    #assert execCode['codeRun']                   #try to execute the code.
-    #assert execCode['codeOutput'].equals(driver['dataFrame']) #test if the output of the code equals the output of the  
-
-def test_tags():
-    driver = data.tags(**{ 'category_id': '125', 'file_type': 'json', 'realtime_start': '', 'realtime_end':   '', 'tag_names' : '', 'exclude_tag_names':'', 'tag_group_id': '', 'search_text': '', 'limit':'', 'offset':'', 'order_by':'', 'sort_order':'' },verbose=True)
-    #execCode = executeCode(driver['code']) 
-    assert driver['request'].status_code == 200  #test if connection was stablished
-    assert not driver['dataFrame'].empty         #cleaned up output is not empty
-    #assert execCode['codeRun']                   #try to execute the code.
-    #assert execCode['codeOutput'].equals(driver['dataFrame']) #test if the output of the code equals the output of the  
-
+    assert execCode['codeRun']                   #try to execute the code.
+    assert execCode['codeOutput'].equals(driver['dataFrame']) #test if the output of the code equals the output of the  
 
 if __name__ == '__main__':
     test_startDriver()     
