@@ -157,7 +157,7 @@ class extractTransformDB():
         '''
         #get data 
         query = self.getBaseQuery(urlPrefix,params)
-        retrivedData = requests.get(**query)
+        retrivedData = requests.get(** { key:entry for key, entry in query.items() if key in ['params','url'] } )
         
         #clean data
         df_output,self._cleanCode = self.cleanOutput(dbName,query,retrivedData)
@@ -187,6 +187,7 @@ class extractTransformDB():
         #update query url
         query['url'] = query['url']+urlPrefix   
         query['params'].update(params)
+        query['params_dict'] = query['params']
         query['params'] = '&'.join([str(entry[0]) + "=" + str(entry[1]) for entry in query['params'].items()])
         
         return(query)
@@ -255,18 +256,20 @@ class transformExtractedData():
         dataKey = dbParams[dbName]['json key']
         cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
         df_output = pd.DataFrame(retrivedData.json()[dataKey])  # TODO: deal with xml
-        try:
+        if dbName == 'observations':
+            seriesID =  query['params_dict']['series_id'] #{ x.split('=')[0] : x.split('=')[1] for x in query['params'].split("&") }['series_id'] 
             df_output = df_output.drop(['realtime_end','realtime_start'],axis=1)
             df_output['date'] = pd.to_datetime(df_output['date'])
             df_output.set_index('date',inplace=True)
             df_output.value = pd.to_numeric(df_output.value,errors = 'coerse')
+            df_output = df_output.rename({'value':seriesID},axis='columns')
             cleanCode += "\ndf_output = df_output.drop(['realtime_end','realtime_start'],axis=1) "
             cleanCode += "\ndf_output['date'] = pd.to_datetime(df_output['date']) "
             cleanCode += "\ndf_output.set_index('date',inplace=True) "
             cleanCode += "\ndf_output.value = pd.to_numeric(df_output.value,errors = 'coerse') "
+            cleanCode += "\ndf_output = df_output.rename({{ 'value' : '{seriesID}' }},axis='columns')".format(**{'seriesID':seriesID})
             #TODO: relabel value column with symbol
-        except:
-            pass
+        
         warnings.filterwarnings("ignore", category=UserWarning)
         setattr(df_output, '_meta', dict(filter(lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
         warnings.filterwarnings("always", category=UserWarning)
@@ -284,7 +287,7 @@ class transformIncludeCodeSnippet():
         return(apiCode + queryCode)
     
     def getQueryCode(self,query,baseRequest,pandasCode=""):
-        queryClean = deepcopy(query)
+        queryClean = {'url':query['url'],'params':query['params']}  #passing only these two entries of query; params_dict is dropped.
         queryClean['url'] = 'url'
         queryClean['params']=queryClean['params'].replace(baseRequest['params']['api_key'],'{}')+'.format(key)'  #replace explicit api key by the var "key" poiting to it.
         
@@ -427,4 +430,5 @@ class driverMetadata():
 
 
 if __name__ == '__main__':
-    case = driverCore(dbGroupName = 'Series',defaultQueryFactoryEntry='observations')
+    case = driverCore(dbGroupName = 'Series')
+    print(case('gdp',verbose=True))

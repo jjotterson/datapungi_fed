@@ -29,7 +29,7 @@ def startDriver(cmdopt):
     return(data)  
 
 def test_categories(cmdopt):
-    #data = startDriver(cmdopt)
+    data = startDriver(cmdopt)
     driver = data.categories(125,verbose=True)
     execCode = executeCode(driver['code']) 
     assert driver['request'].status_code == 200  #test if connection was stablished

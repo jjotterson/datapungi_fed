@@ -22,12 +22,14 @@ class data():
         self._help     = self.__connectInfo.datasourceOverview
         #load drivers:
         loadInfo = {'baseRequest' : self.__connectInfo.baseRequest, 'connectionParameters' : self.__connectInfo.connectionParameters}
+        
+        #specific drivers
         self.datasetlist  = drivers.datasetlist(**loadInfo)
-        self.categories   = driverCore('Categories',**loadInfo)
-        self.releases     = driverCore('Releases',**loadInfo)
-        self.series       = driverCore('Series',**loadInfo)
-        self.sources      = driverCore('Sources',**loadInfo)
-        self.tags         = driverCore('Tags',**loadInfo)
+        
+        #core drivers
+        coreDriversParams = driverCore()
+        for dbGroupName in [x['group'] for x in coreDriversParams._dbParams]:
+            setattr(self, dbGroupName.lower(), driverCore(dbGroupName,**loadInfo))
              
     def __call__(self,*args,**kwargs):
         return(self.series(*args,**kwargs))
