@@ -18,27 +18,18 @@ def executeCode(stringIn):
         except:
             return(dict(codeRun = False, codeOutput = pd.DataFrame([])))
 
-# content of test_sample.py
-def test_startDriver(cmdopt):
-    if not cmdopt == "":
-        connectionParameters = {"key": cmdopt, "url": ""}
-    else:
-        connectionParameters = {}
-    data = dp.data(connectionParameters)
-    assert data
-    return(data)
-
 # start  the driver - used by all tests
 def startDriver(cmdopt):
+    global data
     if not cmdopt == "":
-        connectionParameters = {"key": cmdopt, "url": ""}
+        connectionParameters = {"key": cmdopt, "url": "https://api.stlouisfed.org/fred/"}
     else:
         connectionParameters = {}
     data = dp.data(connectionParameters)
     return(data)  
 
 def test_categories(cmdopt):
-    data = startDriver(cmdopt)
+    #data = startDriver(cmdopt)
     driver = data.categories(125,verbose=True)
     execCode = executeCode(driver['code']) 
     assert driver['request'].status_code == 200  #test if connection was stablished
