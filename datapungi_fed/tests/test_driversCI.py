@@ -22,7 +22,7 @@ def executeCode(stringIn):
 def startDriver(cmdopt):
     global data
     if not cmdopt == "":
-        connectionParameters = {"key": cmdopt, "url": "https://api.stlouisfed.org/fred/"}
+        connectionParameters = {"key": cmdopt, "url": "https://api.stlouisfed.org/"}
     else:
         connectionParameters = {}
     data = dp.data(connectionParameters)

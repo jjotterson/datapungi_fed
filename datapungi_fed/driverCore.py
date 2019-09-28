@@ -240,6 +240,8 @@ class transformExtractedData():
     def __call__(self,dbGroup,dbName,dbParams,query,retrivedData):
         if dbGroup == 'Series':
             return( self.cleanOutputSeries(dbName,dbParams,query,retrivedData) )
+        if dbGroup == 'Geo':
+            return( self.cleanOutputGeo(dbName,dbParams,query,retrivedData) )
         else:
             return( self.cleanOutput(dbName,dbParams,query,retrivedData) )
       
@@ -274,7 +276,39 @@ class transformExtractedData():
         setattr(df_output, '_meta', dict(filter(lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
         warnings.filterwarnings("always", category=UserWarning)
         return((df_output,cleanCode))
-
+    
+    def cleanOutputGeo(self, dbName, dbParams,query, retrivedData): #categories, releases, sources, tags
+        if dbName == 'shapes':
+            dataKey = query['params_dict']['shape']
+        elif dbName == 'series':
+            #reproducible code
+            cleanCode =  "includeDate = lambda key, array: [ dict(**entry,**{'_date':key}) for entry in array   ]"
+            cleanCode += "dictData = [  includeDate(key,array) for key,array in  retrivedData.json()['meta']['data'].items() ]"
+            cleanCode += "dictDataFlat = [item for sublist in dictData for item in sublist]"
+            cleanCode += "df_output = pd.DataFrame( dictDataFlat )"
+            
+            #create dataframe
+            includeDate = lambda key, array: [ dict(**entry,**{'_date':key}) for entry in array   ]
+            dictData = [  includeDate(key,array) for key,array in  retrivedData.json()['meta']['data'].items() ]
+            dictDataFlat = [item for sublist in dictData for item in sublist]
+            df_output = pd.DataFrame( dictDataFlat )
+            
+            #dataframe metadata
+            jsonMeta = retrivedData.json()['meta']
+            warnings.filterwarnings("ignore", category=UserWarning)
+            setattr(df_output, '_meta', dict(filter(lambda entry: entry[0] != 'data', jsonMeta.items())))  
+            warnings.filterwarnings("always", category=UserWarning)
+            
+            return((df_output,cleanCode))
+        else: 
+            dataKey = dbParams[dbName]['json key']
+        
+        cleanCode = "df_output =  pd.DataFrame( retrivedData.json()['{}'] )".format(dataKey)
+        df_output = pd.DataFrame(retrivedData.json()[dataKey])  # TODO: deal with xml
+        warnings.filterwarnings("ignore", category=UserWarning)
+        setattr(df_output, '_meta', dict(filter(lambda entry: entry[0] != dataKey, retrivedData.json().items())))  
+        warnings.filterwarnings("always", category=UserWarning)
+        return((df_output,cleanCode))
 
 class transformIncludeCodeSnippet():
     def transformIncludeCodeSnippet(self,query,baseRequest,userSettings={},pandasCode=""):      

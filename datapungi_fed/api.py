@@ -2,10 +2,10 @@ import pandas as pd
 import requests
 import sys
 from datapungi_fed import generalSettings 
-from datapungi_fed import drivers
-from datapungi_fed.driverCore import driverCore
-#from driverCore import driverCore
-#import drivers
+#from datapungi_fed import drivers
+#from datapungi_fed.driverCore import driverCore
+from driverCore import driverCore
+import drivers
 
 
 class data():
@@ -60,11 +60,15 @@ class data():
 
 if __name__ == '__main__':            
     d = data()
-    print(d)
-    print(d.datasetlist())   
-    print(d.categories(125))   
-    print(d.releases())   
-    print(d.series('GDP'))
-    print(d('GNP'))
-    print(d.sources('1'))   
-    print(d.tags(tag_names='monetary+aggregates;weekly'))   
+    #print(d)
+    #print(d.datasetlist())   
+    #print(d.categories(125))   
+    #print(d.releases())   
+    #print(d.series('GDP'))
+    #print(d('GNP'))
+    #print(d.sources('1'))   
+    #print(d.tags(tag_names='monetary+aggregates;weekly'))   
+    #print(d.geo['shapes']('bea'))
+    #print(d.geo['meta']('SMU56000000500000001a'))
+    v= d.geo['series'](series_id='WIPCPI',start_date='2012-01-01',verbose=True)
+    print(v)
