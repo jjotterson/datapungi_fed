@@ -280,12 +280,12 @@ class transformExtractedData():
     def cleanOutputGeo(self, dbName, dbParams,query, retrivedData): #categories, releases, sources, tags
         if dbName == 'shapes':
             dataKey = query['params_dict']['shape']
-        elif dbName == 'series':
+        elif dbName == 'series' or dbName == 'data':
             #reproducible code
             cleanCode =  "includeDate = lambda key, array: [ dict(**entry,**{'_date':key}) for entry in array   ]"
-            cleanCode += "dictData = [  includeDate(key,array) for key,array in  retrivedData.json()['meta']['data'].items() ]"
-            cleanCode += "dictDataFlat = [item for sublist in dictData for item in sublist]"
-            cleanCode += "df_output = pd.DataFrame( dictDataFlat )"
+            cleanCode += "\ndictData = [  includeDate(key,array) for key,array in  retrivedData.json()['meta']['data'].items() ]"
+            cleanCode += "\ndictDataFlat = [item for sublist in dictData for item in sublist]"
+            cleanCode += "\ndf_output = pd.DataFrame( dictDataFlat )"
             
             #create dataframe
             includeDate = lambda key, array: [ dict(**entry,**{'_date':key}) for entry in array   ]

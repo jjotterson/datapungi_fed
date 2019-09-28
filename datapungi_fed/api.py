@@ -70,5 +70,8 @@ if __name__ == '__main__':
     #print(d.tags(tag_names='monetary+aggregates;weekly'))   
     #print(d.geo['shapes']('bea'))
     #print(d.geo['meta']('SMU56000000500000001a'))
-    v= d.geo['series'](series_id='WIPCPI',start_date='2012-01-01',verbose=True)
+    #v= d.geo['series'](series_id='WIPCPI',start_date='2012-01-01',verbose=True)
+    #print(v)
+
+    v= d.geo['data'](series_group='882',date='2013-01-01',region_type='state',units='Dollars',frequency='a',season='NSA')
     print(v)
