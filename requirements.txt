@@ -5,6 +5,5 @@ pytest-html
 pyperclip
 lxml
 xlrd
-beautifulsoup4
 html5lib
 pyyaml 
