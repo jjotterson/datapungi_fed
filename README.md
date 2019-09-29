@@ -11,15 +11,13 @@ install code: pip install datapungi_fed
 
 <h1> datapungi_fed  </h1>
 
-  datapungi_fed is a python package used to extract data from the API of Federal Reserve (FED).  Overall it:
-  - provides a quick access to a FED's time series data and access to all other datasets in the FED's API
-  - provides both a cleaned up output (in pandas format) and a full output of the request result
+  datapungi_fed is a python package that extracts FRED and GeoFRED data from Federal Reserve (FED) by connecting to its API.  Overall it:
+  - provides a quick access to a FED's time series data 
+  - provides both a cleaned up output (pandas) and a full request output of any FRED or GeoFRED dataset.
   - provides code snippets that can be used to access the FED API independently of datapungi_fed     
   - can read a saved API key (as an environment variables (default) or from json/yaml files) to avoid having a copy of it on a script
-  - can automatically test: 
-      * the connectivity to all datasets, 
-      * the quality of the cleaned up data, and 
-      * if the provided requests code snippet returns the correct result. 
+  - can run many tests such as if all database access are working, the data is being cleaned correlty and if the code snippet returns the correct data. 
+
 
 ## Sections
   -  [Short sample runs](#Sample-runs)
@@ -30,29 +28,9 @@ install code: pip install datapungi_fed
 
 ## Sample runs
 
-### Quick Setup
-For a quick setup (see [set the package up](#Setting-up-datapungi_fed) for more options), first [get an API key from the FED](https://research.stlouisfed.org/docs/api/api_key.html), then save it as an environment variable called API_KEY_FED by, for example, typing on a termninal:
-
-- In windows:
-   ```
-   > setx API_KEY_FED "your api key"
-   ```
-- In mac:
-  ```
-  $ touch ~/.bash_profile
-  $ open -a TextEdit.app ~/.bash_profile
-  ```
-  add the following text at the end and save it: 
-  
-  ```
-  export API_KEY_FED=yourKey 
-  ```
-
-Close the terminal (in mac, restart the computer) after saving the variable.    
-
 ### Short runs:
 
-datapungi_fed is designed to quickly access FED time series data.  Given one of its time series symbol (eg, 'gdp') it can be fetched by typing:
+datapungi_fed is designed to quickly access FED time series data.  After [Setting up datapungi_fed](#Setting-up-datapungi_fed), a time series symbol (say 'gdp') can be fetched by typing:
 
 ```python
 import datapungi_fed as dpf
@@ -60,27 +38,45 @@ import datapungi_fed as dpf
 dpf('gdp') 
 ```
 
-The FRED API has 5 main groups of databases, datapungi_fed includes a 6th group (datasetlist): 
+If in doubt, try the print command on an datapungi_fed object to get information on how to proceed.
+
+```python
+'''Getting Help'''
+
+import datapungi_fed as dpf
+
+print(dpf)         #suggests to run data = dpf.data()
+
+data = dpf.data()
+print(data)        #list the database groups (eg. geo) and short description of each
+
+print(data.geo)    #list the databases in the groups, their short descriptions and parameters
+print(data.categories)    
+print(data.series)        
+```
 
 
-database group   | description
+
+At a top level, FRED has 5 groups of databases and we group the GeoFRED under the same group ("geo"). datapungi_fed includes a 6th group (datasetlist). 
+
+
+FRED database group   | description
 ----------- | -----------
-dataselist                                             | datapungi_fed database listing all FED API databases and the parameters used to query them
-[categories](https://fred.stlouisfed.org/categories/)  | Catagories of datasets - 8 top categories (eg, National Accounts, Prices) that break down into subgroups 
-[releases](https://fred.stlouisfed.org/releases/)      | Release groups of data - about 300 (eg, Western Hemisphere Regional Economic Outlook, Penn World Table)
-[series  ](https://fred.stlouisfed.org/)               | About 600,000 time series provided by various sources
-[sources ](https://fred.stlouisfed.org/sources/)       | List of data sources - about 90 data providers (eg, IMF and Bank of Mexico)
-[tags    ](https://fred.stlouisfed.org/tags/)          | Tags applied to time series (eg, location, data source, frequency) - about 5,000 tags
-
-
+dataselist                                              | datapungi_fed metadata of all other (FRED and GeoFRED) databases
+[categories](https://fred.stlouisfed.org/categories/)   | Catagories of datasets - 8 top categories (eg, National Accounts, Prices) that break down into subgroups 
+[releases ](https://fred.stlouisfed.org/releases/)      | Release groups of data - about 300 (eg, Western Hemisphere Regional Economic Outlook, Penn World Table)
+[series   ](https://fred.stlouisfed.org/)               | About 600,000 time series provided by various sources
+[sources  ](https://fred.stlouisfed.org/sources/)       | List of data sources - about 90 data providers (eg, IMF and Bank of Mexico)
+[tags     ](https://fred.stlouisfed.org/tags/)          | Tags applied to time series (eg, location, data source, frequency) - about 5,000 tags
+[geo      ](https://research.stlouisfed.org/docs/api/geofred/)  | Harvest data and shape files found in GeoFRED 
 
 
 These groups of databases are broken down into sets of databases.  datapungi_fed access all of them, but 
-for each group it defaults to a specific case.  Below is a run sample of each default search.
-
-
+for each group it defaults to a specific case (use the "print" command as described above to get the name of the default database).  Below is a run sample of each default search.
 
 ```python
+'''Sample Query of All Database Groups - Default Databases'''
+
 import datapungi_fed as dpf
 
 data = dpf.data() 
@@ -91,103 +87,148 @@ data.releases()
 data.series('GDP')
 data.sources('1')   
 data.tags(tag_names='monetary+aggregates;weekly')
+data.geo(series_id='WIPCPI')
 ```
-
+NOTICE: all returned pandas dataframes contain a "_meta" attribute with metadata information of dataset.
 
 ```python
-#Query a database, return all information:
+'''Returned Metadata'''
+
+import datapungi_fed as dpf
+
+dpf('gnp')._meta
+```
+NOTICE: "meta" is not a pandas official attribute; slight changes to the dataframe (say, merging, or multiplying it by a number) will remove meta.
+
+### Verbose 
+
+Use the verbose option to get the full request result, a cleaned version of the dataset, and a string of the code used to get the data.
+
+```python
+'''Verbose Run: Get Full Request Result, Cleaned Data, and Code Snippet'''
+
+import datapungi_fed as dpf
+
+data = dpf.data()
 full = data.series('gnp',verbose=true)  
 full['dataFrame']           #pandas table, as above
 full['request']             #full request run, see section below
 full['code']                #code snippet of a request that reproduces the query. 
 
-data._clipcode() #copy ccode to clipboard (Windows only).
+#to get the request result:
+full['request'].json()
 ```
  
+Notice: By default, datapungi_fed requests data in json format.   
+
 ### Sample run of all drivers
 
-Notice that all panda tables include a "meta" section listing units, short table description, revision date etc.  For more detailed metadata, use the verbose = True option (see, [Description of a full return](#Full-request-result)).  
 
-```python
-import datapungi_fed as dpf
-
-data = dpf.data()
-
-v = data.series('gdp')
-v._meta
-
-#or
-v = dpf('gdp')
-v._meta
-```
-
-Also, "meta" is not a pandas official attribute; slight changes to the dataframe (say, merging, or multiplying it by a number) will remove meta.
 
 
 ```python
-
+'''Sample Run of All Datasets'''
 import datapungi_fed as dpf
 
-#start the drivers:
+
 data = dpf.data()
 
-#FRED tags dataset:
-data.tags()                                  
-data.tags(api='related_tags',tag_names='monetary+aggregates;weekly') 
-data.tags('tag/series','slovenia;food;oecd') 
+# Categories data group
+print(data.categories)
+data.categories(125)
+data.categories['category'](125)
+data.categories['children'](13)
+data.categories['related'](32073)
+data.categories['series'](125)
+data.categories['tags'](125)
+data.categories['related_tags'](125,tag_names="services;quarterly")
     
+# Releases data group
+print(data.releases)
+data.releases(verbose=True)
+data.releases['releases'](verbose=True)
+data.releases['release/dates'](release_id=53,verbose=True)
+data.releases['release'](release_id=53,verbose=True)
+data.releases['release/dates'](release_id=53,verbose=True)
+data.releases['release/series'](release_id=53,verbose=True)
+data.releases['release/sources'](release_id=53,verbose=True)
+data.releases['release/tags'](release_id=53,verbose=True)
+data.releases['release/related_tags'](release_id='86',tag_names='sa;foreign',verbose=True)
+data.releases['release/tables'](release_id=53,verbose=True)
+    
+# Series data group
+print(data.series)
+data.series('gdp',verbose=True) 
+data.series['series']('GDP',verbose=True)
+data.series['categories']('EXJPUS',verbose=True)
+data.series['observations']('GNP',verbose=True)
+data.series['release']('IRA',verbose=True)
+data.series['search'](search_text='monetary+service+index',verbose=True)
+data.series['search/tags'](series_search_text='monetary+service+index',verbose=True)
+data.series['search/related_tags'](series_search_text='mortgage+rate',tag_names='30-year;frb',verbose=True)
+data.series['tags'](series_id='STLFSI',verbose=True)
+data.series['categories']('EXJPUS',verbose=True)
+data.series['updates'](verbose=True)
+data.series['vintagedates']('GNPCA',verbose=True)
+    
+# Tags data group
+print(data.tags)
+data.tags(tag_names='monetary+aggregates;weekly',verbose=True)
+data.tags['tags'](tag_names='monetary+aggregates;weekly',verbose=True)
+data.tags['related_tags'](tag_names='monetary+aggregates;weekly',verbose=True)
+data.tags['tags/series'](tag_names='slovenia;food;oecd',verbose=True)
 
+#Geo data group
+print(data.geo)
+data.geo['shapes']('bea')
+data.geo['meta'](series_id='SMU56000000500000001')
+data.geo(series_id='WIPCPI',start_date='2012-01-01')
+data.geo['data'](series_group='882',date='2013-01-01',region_type='state',units='Dollars',frequency='a',season='NSA')
 ```
 
-## Full request result 
 
-When the verbose option is selected, eg:
-
-```python
-tab = data.(,verbose = True)
-```
-
-A query returns a dictionary with three entries: dataFrame, request and code.  
-  - dataFrame is a cleaned up version of the request result in pandas dataframe format
-  - request is the full output of a request query (see the request python package)
-  - code is a request code snippet to get the data that can be placed in a script 
-  - (and "metadata" in some cases - listing detailed metadata)
-
-The most intricate entry is the request one.  It is an object containing the status of the query:
-
-```python
-print(tab['request'])  #200 indicates that the query was successfull 
-```
-
-and the output:
-
-```python
-tab['request'].json()[]
-```
-
-a dictionary.  Its entry
-
-```python
- tab['request'].json()[]['Results']
-```
-
-is again a dictionary this time with the following entries:
-  
-  - Statistic: the name of the table (eg, NIPA)
-  - UTCProductionTime: the time when you downloaded the data
-  - Dimensions: the dimensions (unit of measurement) of each entry of the dataset
-  - Data: the dataset 
-  - Notes: A quick description of the dataset with the date it was last revised.  
 
 
 
 ## Setting up datapungi_fed 
 
-To use the FED API, **the first step** is to get an API key from: 
+To use the FED API, **the first step** is to [get an API key from the FED](https://research.stlouisfed.org/docs/api/api_key.html).
 
-* 
+### Quick Setup (Suggest Setup)
 
-There are three main options to pass the key to datapungi_fed:
+For a quick setup, just save your api key as an environment variable called API_KEY_FED by, for example, typing on a termninal:
+
+- windows:
+   ```
+   > setx API_KEY_FED "your api key"
+   ```
+- mac:
+  ```
+  $ touch ~/.bash_profile
+  $ open -a TextEdit.app ~/.bash_profile
+  ```
+  add the following text at the end and save it: 
+  
+  ```
+  export API_KEY_FED=yourKey 
+  ```
+
+Close the terminal (may need to restart the computer) after saving the variable. 
+
+
+Notice: searching for an environment variable named 'API_KEY_FED' is the default option.  If changed to some other option and want to return to the default, run:
+
+```python
+import datapungi_fed as dpf
+
+dpf.utils.setUserSettings('env')  
+```
+
+If you want to save the url of the API in the environment, call it API_KEY_FED_url. datapungi_fed will use the provided http address instead of the default. 
+
+### Other setting up options:
+
+Besides the suggested setup above, there are two main options to pass an api key to datapungi_fed:
 
 #### (Option 1) Pass the key directly:
 ```python
@@ -203,14 +244,14 @@ data.series('gdp')
  sample json file : 
 ```python
     {  
-         "FED": {"key": "**PLACE YOUR KEY HERE**", "url": ""},
+         "API_KEY_FED": {"key": "**PLACE YOUR KEY HERE**", "url": ""},
          (...Other API keys...)
     }
 ```
 sample yaml file:
 
 ```yaml
-FED: 
+API_KEY_FED: 
     key: PLACE API KEY HERE
     description: FED data
     url: 
@@ -220,22 +261,7 @@ api2:
     url:
 ```
 
-Now can either always point to the API location on a run, such as:
-
-```python
-import datapungi_fed as dpf   
-    
-userSettings = {
-   'ApiKeysPath':'**C:/MyFolder/myApiKey.yaml**', #or .json
-   'ApiKeyLabel':'FED',
-   'ResultFormat':'JSON'
-}   
-
-data = dpf.data(userSettings = userSettings)  
-data.series('gdp')
-```
-
-Or, save the path to your FED API key on the package's user settings (only need to run the utils once, datapungi_fed will remember it in future runs):
+Save the path to your FED API key on the package's user settings (only need to run the utils once, datapungi_fed will remember it in future runs):
 
 
 ```python
@@ -246,36 +272,7 @@ dpf.utils.setUserSettings('C:/Path/myKeys.yaml') #or .json
 data = dpf.data()
 data.series('gdp')
 ```
-
-#### (Option 3) Save the key in an environment variable
-
-Finally, you can also save the key as an environment variable (eg, windows shell and in anaconda/conda virtual environment).   
-
-For example, on a command prompt (cmd, powershell etc, or in a virtual environment)
-
-```
-> setx FED=APIKey 
-```
-
-Then start python and run:
-
-```python
-import datapungi_fed as dpf
-
-dpf('gpd')
-```
-
-Notice: searching for an environment variable named 'FED' is the default option.  If changed to some other option and want to return to the default, run:
-
-```python
-import datapungi_fed as dpf
-
-dpf.utils.setUserSettings('env')  
-```
-
-If you want to save the url of the API in the environment, call it FED_url. datapungi_fed will use the provided http address instead of the default 
-
-> 
+ 
 
 ### Changing the API key name
   By default, datapungi_fed searches for an API key called 'FED' (in either json/yaml file or in the environment).  In some cases, it's preferable to call it something else (in conda, use FED_Secret to encript it).  To change the name of the key, run
@@ -317,5 +314,4 @@ dpf.utils.setTestFolder('C:/mytestFolder/')
 ```
 
 
-## References 
 
