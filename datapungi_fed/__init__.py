@@ -14,7 +14,7 @@ class topCall(sys.modules[__name__].__class__):
         coreClass = data()
         return(coreClass(*args,**kwargs))
     def __str__(self):
-        starter = "\nSample starter: \n\nimport datapungi_fed as dpf \n\ndata = dpf.data() \nprint(data)"
+        starter = "\nSample starter: \n\nimport datapungi_fed as dpf \n\ndata = dpf.data() \nprint(data) \npor just query a time series: \ndpf('gdp')"
         return(starter)
 
 sys.modules[__name__].__class__ = topCall
