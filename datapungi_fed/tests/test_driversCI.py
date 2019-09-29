@@ -200,14 +200,14 @@ def test_releasesReleaseTables(cmdopt):
 ###########################################################################################################
 ## Test Series
 
-def test_series(cmdopt):
-    data = startDriver(cmdopt)
-    driver = data.series('gdp',verbose=True)
-    execCode = executeCode(driver['code']) 
-    assert driver['request'].status_code == 200  #test if connection was stablished
-    assert not driver['dataFrame'].empty         #cleaned up output is not empty
-    #assert execCode['codeRun']                   #try to execute the code.
-    #assert execCode['codeOutput'].equals(driver['dataFrame']) #test if the output of the code equals the output of the  
+#def test_series(cmdopt):
+#    data = startDriver(cmdopt)
+#    driver = data.series('gdp',verbose=True)
+#    execCode = executeCode(driver['code']) 
+#    assert driver['request'].status_code == 200  #test if connection was stablished
+#    assert not driver['dataFrame'].empty         #cleaned up output is not empty
+#    #assert execCode['codeRun']                   #try to execute the code.
+#    #assert execCode['codeOutput'].equals(driver['dataFrame']) #test if the output of the code equals the output of the  
 
 def test_seriesSeries(cmdopt):
     data = startDriver(cmdopt)
@@ -227,14 +227,14 @@ def test_seriesCategories(cmdopt):
     #assert execCode['codeRun']                   #try to execute the code.
     #assert execCode['codeOutput'].equals(driver['dataFrame']) #test if the output of the code equals the output of the 
 
-def test_seriesObservations(cmdopt): #seriesLong
-    data = startDriver(cmdopt)
-    driver = data.series['observations']('GNP',verbose=True)
-    execCode = executeCode(driver['code']) 
-    assert driver['request'].status_code == 200  #test if connection was stablished
-    assert not driver['dataFrame'].empty         #cleaned up output is not empty
-    #assert execCode['codeRun']                   #try to execute the code.
-    #assert execCode['codeOutput'].equals(driver['dataFrame']) #test if the output of the code equals the output of the 
+#def test_seriesObservations(cmdopt): #seriesLong
+#    data = startDriver(cmdopt)
+#    driver = data.series['observations']('GNP',verbose=True)
+#    execCode = executeCode(driver['code']) 
+#    assert driver['request'].status_code == 200  #test if connection was stablished
+#    assert not driver['dataFrame'].empty         #cleaned up output is not empty
+#    #assert execCode['codeRun']                   #try to execute the code.
+#    #assert execCode['codeOutput'].equals(driver['dataFrame']) #test if the output of the code equals the output of the 
 
 def test_seriesRelease(cmdopt):
     data = startDriver(cmdopt)
