@@ -280,12 +280,12 @@ class transformExtractedData():
             df_output = df_output.drop(['realtime_end','realtime_start'],axis=1)
             df_output['date'] = pd.to_datetime(df_output['date'])
             df_output.set_index('date',inplace=True)
-            df_output.value = pd.to_numeric(df_output.value,errors = 'coerse')
+            df_output.value = pd.to_numeric(df_output.value,errors = 'coerse',downcast='integer') #NOTICE: downcast = float behaves oddly in GDP, default to float32 and introduce new digits.  integer will default to float64
             df_output = df_output.rename({'value':seriesID},axis='columns')
             cleanCode += "\ndf_output = df_output.drop(['realtime_end','realtime_start'],axis=1) "
             cleanCode += "\ndf_output['date'] = pd.to_datetime(df_output['date']) "
             cleanCode += "\ndf_output.set_index('date',inplace=True) "
-            cleanCode += "\ndf_output.value = pd.to_numeric(df_output.value,errors = 'coerse') "
+            cleanCode += "\ndf_output.value = pd.to_numeric(df_output.value,errors = 'coerse',downcast='integer') "
             cleanCode += "\ndf_output = df_output.rename({{ 'value' : '{seriesID}' }},axis='columns')".format(**{'seriesID':seriesID})
             #TODO: relabel value column with symbol
         
