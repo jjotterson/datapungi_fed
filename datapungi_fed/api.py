@@ -7,14 +7,40 @@ from datapungi_fed import generalSettings
 from driverCore import driverCore
 import drivers
 
-
+#TODO: test clipcode, utils (setting folder, options), getting help in each step.
 class data():
     '''
-       the purpose of this class is to provide an environment where the shared data needed to establish a connection is loaded
-       and to be a one stop shop of listing all available drivers.  
-       :param connectionParameters: a dictionary with at least 'key', and 'url'
-         {'key': 'your key', 'description': 'FED data', 'url': ''} 
-       :param userSettings: settings saved in the packge pointing to a yaml/json or env containing the connection parameters 
+       Connect to all of FRED and GeoFred databases. To start, choose a database group from:
+
+       - categories: 8 top categories (eg, National Accounts) and their subgroups
+                   https://fred.stlouisfed.org/categories/
+       - releases: about 300 datasets of time series grouped by release (eg, Penn World Table)
+                   https://fred.stlouisfed.org/releases/
+       - series: time series data
+                   https://fred.stlouisfed.org/
+       - sources: about 90 data providers (eg, IMF and Bank of Mexico)
+                   https://fred.stlouisfed.org/sources/
+       - tags: 	Tags applied to time series (eg, location, data source, frequency) - about 5,000 tags
+                   https://fred.stlouisfed.org/tags/
+       - geo: spatial economic data
+                   https://geofred.stlouisfed.org/
+
+       For example:
+       import datapungi_fed as dpf
+
+       data = dpf.data()
+       print(data.series)
+
+       This class, and datapungi_fed itself, defaults to the series database.  Hence, the following
+       will query the series database:
+
+       import datapungi_fed as dpf
+
+       dfp('gdp')
+       data = dpf.data()
+       data('gdp')
+
+       Check the __doc__ of each database for more information.
     '''
     def __init__(self,connectionParameters = {}, userSettings = {}):
         self.__connectInfo = generalSettings.getGeneralSettings(connectionParameters = connectionParameters, userSettings = userSettings ) 
@@ -35,7 +61,7 @@ class data():
         return(self.series(*args,**kwargs))
 
     def __str__(self):
-        return('\nList of drivers and their shortcuts')
+        return(self.__doc__)
 
     def _clipcode(self):
         try:
@@ -44,19 +70,6 @@ class data():
             print('Get data using a driver first, eg: ')
             #eg: data.NIPA("T10101", verbose = True)
     
-    def _docDriver(self,driverName,printHelp=True):
-        '''
-          Given the delegated method name, get the __doc__ of its class.  
-          eg: 
-          returns the __doc__ of the main method inside the driver.
-        '''
-        #eg: _docDriver('NIPA') 
-        #parentName = list(self.DELEGATED_METHODS.keys())[list(self.DELEGATED_METHODS.values()).index([driverName])]
-        #outhelp = getattr(getattr(self,parentName ),driverName).__doc__
-        #if printHelp:
-        #    print(outhelp)
-        #return(outhelp)
-        return('')
 
 if __name__ == '__main__':            
     d = data()
@@ -73,5 +86,8 @@ if __name__ == '__main__':
     #v= d.geo['series'](series_id='WIPCPI',start_date='2012-01-01',verbose=True)
     #print(v)
 
-    v= d.geo['data'](series_group='882',date='2013-01-01',region_type='state',units='Dollars',frequency='a',season='NSA')
-    print(v)
+    #v= d.geo['data'](series_group='882',date='2013-01-01',region_type='state',units='Dollars',frequency='a',season='NSA')
+    #print(v)
+    #print(d.geo(series_id='WIPCPI',start_date='2012-01-01'))
+    #print(d.geo.__doc__)
+    d.categories(125)

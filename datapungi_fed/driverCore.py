@@ -32,6 +32,7 @@ class driverCore():
         self._ETDB      = extractTransformDB(baseRequest,connectionParameters,userSettings) #a generic query is started
         self._ETFactory = extractTransformFactory(dbGroupName,self._ETDB,self._dbParams,self.defaultQueryFactoryEntry)
         self._driverMeta = driverMetadata()(dbGroupName)
+        self.__setdoc__(dbGroupName)
     
     def __getitem__(self,dbName):
         return(self._ETFactory.extractTransformFactory[dbName])
@@ -39,6 +40,21 @@ class driverCore():
     def __call__(self,*args,**kwargs):
         out = self._ETFactory.extractTransformFactory[self.defaultQueryFactoryEntry](*args,**kwargs)
         return(out)
+    
+    def __setdoc__(self,dbGroupName):
+        if dbGroupName == '':
+            self.__doc__ = 'Returns the metadata of the dataset groups and their databases. Do not need inputs.'
+        else:
+            self.__doc__ = 'Queries the databases of {} \n \n'.format(dbGroupName)
+            for entry in self.__docParams__: 
+                self.__doc__ += '- {short name}: {description} \n'.format(**entry)
+                self.__doc__ += '       parameters: {}\n'.format(str(entry['parameters']))
+                self.__doc__ += '       official database name: {}\n'.format(entry['database'])
+            self.__doc__ += '\nDefault query database: {}\n'.format(self.defaultQueryFactoryEntry) 
+            self.__doc__ += "Sample functions: \n-data.{dbGroupName}() (default)  \n-data.{dbGroupName}['{db}']() (query the {db} database)".format(**{'dbGroupName':dbGroupName.lower(),'db':self.defaultQueryFactoryEntry})       
+            self.__doc__ += "\n\nNOTE: don't need to pass most parameters.  Eg, api_key and file_type (json)."
+    def __str__(self):
+        return(self.__doc__)
            
     def _getDBParameters(self,dbGroupName = ''):
         r'''
@@ -59,6 +75,7 @@ class driverCore():
         removeCases = lambda array: list(filter( lambda x: x not in ['api_key','file_type']  , array ))
         dbParams = { entry['short name'] : { 'urlSuffix' : entry['database'] , 'json key': entry['json key'], 'params': removeCases(entry['parameters']) } for entry in datasets }
         
+        self.__docParams__ =  datasets #parameters used to write a doc string for the class instance.
         return((dbParams,defaultDB))
 
 
