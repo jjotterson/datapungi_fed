@@ -4,7 +4,7 @@ TODO: add explanation of the request part of the vintage.
 
 [![image](https://img.shields.io/pypi/v/datapungi_fed.svg)](https://pypi.org/project/datapungi_fed/) 
 [![build Status](https://travis-ci.com/jjotterson/datapungi_fed.svg?branch=master)](https://travis-ci.com/jjotterson/datapungi_fed)
-[![downloads](https://img.shields.io/pypi/dm/datapungi_fed.svg)](https://pypi.org/project/datapungi_fed/)
+[![Downloads](https://pepy.tech/badge/datapungi-fed)](https://pepy.tech/project/datapungi-fed)
 [![image](https://img.shields.io/pypi/pyversions/datapungi_fed.svg)](https://pypi.org/project/datapungi_fed/)
 
 install code: pip install datapungi_fed 
