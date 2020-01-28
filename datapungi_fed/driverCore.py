@@ -277,16 +277,23 @@ class transformExtractedData():
         df_output = pd.DataFrame(retrivedData.json()[dataKey])  # TODO: deal with xml
         if dbName == 'observations':
             seriesID =  query['params_dict']['series_id'] #{ x.split('=')[0] : x.split('=')[1] for x in query['params'].split("&") }['series_id'] 
-            df_output = df_output.drop(['realtime_end','realtime_start'],axis=1)
-            df_output['date'] = pd.to_datetime(df_output['date'])
-            df_output.set_index('date',inplace=True)
-            df_output.value = pd.to_numeric(df_output.value,errors = 'coerse',downcast='integer') #NOTICE: downcast = float behaves oddly in GDP, default to float32 and introduce new digits.  integer will default to float64
-            df_output = df_output.rename({'value':seriesID},axis='columns')
-            cleanCode += "\ndf_output = df_output.drop(['realtime_end','realtime_start'],axis=1) "
-            cleanCode += "\ndf_output['date'] = pd.to_datetime(df_output['date']) "
-            cleanCode += "\ndf_output.set_index('date',inplace=True) "
-            cleanCode += "\ndf_output.value = pd.to_numeric(df_output.value,errors = 'coerse',downcast='integer') "
-            cleanCode += "\ndf_output = df_output.rename({{ 'value' : '{seriesID}' }},axis='columns')".format(**{'seriesID':seriesID})
+            df_output = (df_output[['date','value']]
+                .assign( dropRow = lambda df: pd.to_numeric(df['value'],errors='coerce')   )
+                .dropna()
+                .drop('dropRow',axis=1)
+                .assign(value=lambda df: df['value'].astype('float'), date=lambda df: pd.to_datetime(df['date'] ) )
+                .set_index('date')
+                .rename({'value':seriesID},axis='columns'))
+            codeAddendum = f'''\n
+                df_output = (df_output[['date','value']]
+                    .assign( dropRow = lambda df: pd.to_numeric(df['value'],errors='coerce')   )
+                    .dropna()
+                    .drop('dropRow',axis=1)
+                    .assign(value=lambda df: df['value'].astype('float'), date=lambda df: pd.to_datetime(df['date'] ) )
+                    .set_index('date')
+                    .rename({{'value': '{seriesID}' }},axis='columns'))
+            '''
+            cleanCode += dedent(codeAddendum)
             #TODO: relabel value column with symbol
         
         warnings.filterwarnings("ignore", category=UserWarning)
