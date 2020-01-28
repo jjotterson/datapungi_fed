@@ -292,7 +292,7 @@ class transformExtractedData():
                     .assign(value=lambda df: df['value'].astype('float'), date=lambda df: pd.to_datetime(df['date'] ) )
                     .set_index('date')
                     .rename({{'value': '{seriesID}' }},axis='columns'))
-            '''
+                '''
             cleanCode += dedent(codeAddendum)
             #TODO: relabel value column with symbol
         
