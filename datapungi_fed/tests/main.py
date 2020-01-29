@@ -23,8 +23,10 @@ def runTests(outputPath='',testsPath='',verbose = True):
     testCode = 'pytest "{testsPath}" --html="{outputTestFile}" --self-contained-html'.format(**{'outputTestFile':outputTestFile,'testsPath':testsPath})
     if platform.system() == 'Darwin':
         testCode = 'python3 -m ' + testCode
-    subprocess.Popen(testCode,shell=True)
+    proc = subprocess.Popen(testCode,shell=True)
+    
     if verbose:
+        proc.communicate()
         print(' \n**************************** \n Tests will be saved in \n {} \n opening results in Browser now.  To view run: \n datapungi_fed.tests.viewTests() \n****************************'.format(outputTestFile))
         webbrowser.open('file://'+outputTestFile)
 
