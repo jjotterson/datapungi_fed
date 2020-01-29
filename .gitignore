@@ -108,3 +108,4 @@ venv.bak/
 .idea/workspace.xml
 .vscode/settings.json
 datapungi_fed/test.py
+datapungi_fed/tests/testResults/datapungi_fed_Tests.html

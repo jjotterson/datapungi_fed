@@ -11,12 +11,12 @@ install code: pip install datapungi_fed
 
 <h1> datapungi_fed  </h1>
 
-  datapungi_fed is a python package that extracts FRED and GeoFRED data from Federal Reserve (FED) by connecting to its API.  Overall it:
-  - provides a quick access to a FED's time series data 
+  datapungi_fed is a python package that extracts FRED and GeoFRED data from the Federal Reserve (FED) by connecting to its API.  Overall it:
+  - provides a quick access to a FED's time-series data (just two lines of code away to any time-series!)
   - provides both a cleaned up output (pandas) and a full request output of any FRED or GeoFRED dataset.
   - provides code snippets that can be used to access the FED API independently of datapungi_fed     
   - can read a saved API key (as an environment variables (default) or from json/yaml files) to avoid having a copy of it on a script
-  - can run many tests such as if all database access are working, the data is being cleaned correlty and if the code snippet returns the correct data. 
+  - can run many tests: check if all database access are working, if the data is being cleaned correctly, and if the code snippet returns the correct data. 
 
 
 ## Sections
@@ -30,7 +30,7 @@ install code: pip install datapungi_fed
 
 ### Short runs:
 
-datapungi_fed is designed to quickly access FED time series data.  After [Setting up datapungi_fed](#Setting-up-datapungi_fed), a time series symbol (say 'gdp') can be fetched by typing:
+There are many datasets available in the FED API, and datapungi_fed connects to them all, but it is specially designed to quickly access the FED's time-series data.  After [setting the package up](#Setting-up-datapungi_fed), a time-series symbol (say 'gdp') can be fetched by typing:
 
 ```python
 import datapungi_fed as dpf
@@ -293,19 +293,27 @@ datapungi_fed comes with a family of tests to check its access to the API and th
 3. the code snippet is executing,
 4. the code snippet produces the same data as the datapungi_fed query.
 
-Other tests check if the data has being updated of if new data is available.  Most of these tests are run every night on python 3.5, 3.6 and 3.7 (see the code build tag on the top of the document).  However, 
+Other tests check if the data has being updated of if new data is available.  Most of these tests are run every night on python 3.6 and 3.7 (see the code build tag on the top of the document).  However, 
 these test runs are not currently checking the code snippet quality to check if its output is the same as the driver's. To run the tests, including the one 
 that checks code snippet quality, type:
 
 ```python
 import datapungi_fed as dpf
 
-dpf.tests.runTests(outputPath = 'C:/Your Path/')
+dpf.tests.runTests()
 ```
 
-This will save an html file in the path specified called datapungi_fed_Tests.html
+the results should open on a web browser.  To re-open the last test results, run:
 
-You can save your test output folder in the user settings as well (need / at the end):
+```python
+import datapungi_fed as dpf
+
+dpf.tests.viewTests()
+```
+
+
+
+To save the tests in a desired folder, run 
 
 ```python
 import datapungi_fed as dpf
@@ -313,5 +321,6 @@ import datapungi_fed as dpf
 dpf.utils.setTestFolder('C:/mytestFolder/')
 ```
 
+Future tests will be saved an html file called datapungi_fed_Tests.html in the path specified.
 
 
