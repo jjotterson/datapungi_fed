@@ -275,7 +275,7 @@ data.series('gdp')
  
 
 ### Changing the API key name
-  By default, datapungi_fed searches for an API key called 'FED' (in either json/yaml file or in the environment).  In some cases, it's preferable to call it something else (in conda, use FED_Secret to encript it).  To change the name of the key, run
+  By default, datapungi_fed searches for an API key called 'API_KEY_FED' (in either json/yaml file or in the environment).  In some cases, it's preferable to call it something else (eg, in a conda env can use FED_Secret to encript it).  To change the name of the key, run
 
   ```python
   import datapungi_fed as dpf
